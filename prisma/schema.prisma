@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// Enumeradores Globais
+// ==========================================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ContentType {
+  TV
+  MOVIE
+  SERIES
+  EPISODE // Útil para separar o progresso de uma série (que é medido por episódio)
+}
+
+// ==========================================
+// 1. Sistema de Usuário
+// ==========================================
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String         // Senha criptografada (ex: bcrypt)
+  name          String?
+  role          Role           @default(USER) // Identifica se é usuário comum ou Admin
+  active        Boolean        @default(true) // Admin pode inativar um usuário
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relacionamentos
+  settings      UserSetting[]
+  favorites     Favorite[]
+  progress      Progress[]
+  devices       Device[]
+}
+
+// ==========================================
+// 2. Configurações Básicas (Chave/Valor)
+// ==========================================
+model UserSetting {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  key       String   // Identificador da config (ex: "theme", "language", "default_view_mode")
+  value     String   // O valor correspondente (pode armazenar JSON stringificado se for complexo)
+  
+  // Garante que o usuário não tenha duas chaves iguais
+  @@unique([userId, key]) 
+}
+
+// ==========================================
+// 3. Sistema de Fingerprint e Dispositivos
+// ==========================================
+model Device {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fingerprint String   @unique // Hash/Identificador gerado pelo frontend (ClientJS/FingerprintJS)
+  name        String?  // Nome amigável (ex: "Smart TV Sala", "Chrome PC")
+  isApproved  Boolean  @default(false) // Por padrão entra bloqueado, Admin libera
+  lastSeen    DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// 4. Favoritos (TV, Filme, Série)
+// ==========================================
+model Favorite {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  streamId    String      // ID originário da API Xtream
+  contentType ContentType // TV, MOVIE ou SERIES
+  addedAt     DateTime    @default(now())
+
+  // Garante que não duplique favorito do mesmo conteúdo para o mesmo usuário
+  @@unique([userId, streamId, contentType]) 
+}
+
+// ==========================================
+// 5. Continuar de Onde Parou (Progresso)
+// ==========================================
+model Progress {
+  id             String      @id @default(cuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  streamId       String      // ID do filme ou do episódio
+  contentType    ContentType // MOVIE ou EPISODE
+  seriesId       String?     // Opcional: ID da série pai, útil para buscar "último eps assistido de X série"
+  seasonId       String?     // Opcional: ID da temporada pai, útil para buscar "Assistindo EP X da Temp Y"
+  
+  progressSecs   Int         // Em qual segundo o usuário pausou
+  durationSecs   Int         // Duração total do vídeo
+  isCompleted    Boolean     @default(false) // Uma flag para indicar que ele já assistiu até o fim (ex: 95%+)
+  
+  updatedAt      DateTime    @default(now()) @updatedAt
+
+  // Garante apenas 1 registro de progresso por conteúdo por usuário
+  @@unique([userId, streamId, contentType])
+}

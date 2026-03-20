@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0a0a0a] text-[#e5e5e5] antialiased;
+  }
+
+  /* Fallback para pseudo-classes modernas em Smart TVs Antigas (WebOS/Tizen) */
+  /* Removemos o tap highlight em mobile/tvs por padrão */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Em TVs, focus-visible muitas vezes não funciona. Mapeamos o :focus normal 
+     para exibir o outline quando as classes do Tailwind focus-visible-* falharem */
+  .is-tv *:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px white !important;
+    border-color: transparent !important;
+    transform: scale(1.03);
+    transition: all 0.2s ease;
+    z-index: 50;
+  }
+
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+}
