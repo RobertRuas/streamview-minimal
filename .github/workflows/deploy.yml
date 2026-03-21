@@ -1,0 +1,23 @@
+name: Deploy Automático StreamView
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executando comandos SSH no servidor
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ~/streamview-minimal
+            git pull origin master
+            sudo docker compose up --build -d
+            sudo docker compose exec -T app npx prisma db push --accept-data-loss
