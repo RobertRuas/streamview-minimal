@@ -12,6 +12,8 @@
 - [x] Backend Express com Prisma para persistência de dados.
 - [x] Refatoração das páginas de detalhes para suportar múltiplos tipos de conteúdo.
 - [x] Componentes de configuração (Gerenciamento de perfil e usuários).
+- [x] Adição do campo de data de pagamento ao perfil do usuário (Frontend & Backend).
+- [x] Atualização do esquema Prisma com o campo `paymentDate`.
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

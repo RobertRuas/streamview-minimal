@@ -110,7 +110,7 @@ app.post('/api/auth/login', async (req, res) => {
       success: true,
       data: {
         token,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode },
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate },
         device: { autoLogin: device.autoLogin }
       }
     });
@@ -178,7 +178,7 @@ app.post('/api/auth/auto-login', async (req, res) => {
       success: true,
       data: {
         token,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode },
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate },
         device: { autoLogin: device.autoLogin }
       }
     });
@@ -404,7 +404,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true }
+      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true, paymentDate: true }
     });
     res.json({ success: true, data: users });
   } catch (error) {
@@ -455,7 +455,7 @@ app.delete('/api/admin/reject-user/:id', authMiddleware, adminMiddleware, async 
 // Editar Usuário (Próprio ou via Admin)
 app.patch('/api/users/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { name, email, role, password } = req.body;
+  const { name, email, role, password, paymentDate } = req.body;
 
   try {
     // Busca o usuário que está fazendo a requisição para checar Role
@@ -478,6 +478,9 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
+    if (paymentDate !== undefined) {
+      updateData.paymentDate = (paymentDate && paymentDate !== '') ? new Date(paymentDate) : null;
+    }
     
     // Processa a senha se enviada
     if (password) {
@@ -493,7 +496,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true }
+      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true, paymentDate: true }
     });
 
     res.json({ success: true, data: updatedUser });

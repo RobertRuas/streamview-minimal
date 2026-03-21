@@ -11,6 +11,7 @@ interface User {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  paymentDate?: string | Date | null;
 }
 
 interface UserManagementTableProps {
@@ -78,6 +79,7 @@ export function UserManagementTable({
                 <th className="px-6 py-5">Usuário / ID</th>
                 <th className="px-6 py-5 text-center">Nível</th>
                 <th className="px-6 py-5 text-center">Status</th>
+                <th className="px-6 py-5">Vencimento</th>
                 <th className="px-6 py-5">Data Cadastro</th>
                 <th className="px-6 py-5 text-right">Ações Rápidas</th>
               </tr>
@@ -120,6 +122,18 @@ export function UserManagementTable({
                         <span className="flex items-center gap-2 text-red-500 font-black text-[9px] uppercase tracking-widest bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
                           <div className="w-1.5 h-1.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]" /> Bloqueado
                         </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-6">
+                    <div className="flex items-center gap-2.5 text-white/40 text-xs font-bold">
+                      {u.paymentDate ? (
+                        <>
+                          <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                          {new Date(u.paymentDate).toLocaleDateString('pt-BR')}
+                        </>
+                      ) : (
+                        <span className="opacity-20 uppercase text-[9px] font-black">S/ Vencimento</span>
                       )}
                     </div>
                   </td>

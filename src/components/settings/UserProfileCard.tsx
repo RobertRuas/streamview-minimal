@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User as UserIcon, Edit, Mail, ShieldCheck, UserCheck, Laptop, Loader2 } from 'lucide-react';
+import { User as UserIcon, Edit, Mail, ShieldCheck, UserCheck, Laptop, Loader2, Calendar } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useToastStore } from '../../store/toast.store';
 import fpPromise from '@fingerprintjs/fingerprintjs';
@@ -10,6 +10,7 @@ interface User {
   name: string | null;
   email: string;
   role: 'USER' | 'ADMIN';
+  paymentDate?: string | Date | null; // Data de pagamento opcional
 }
 
 interface UserProfileCardProps {
@@ -111,6 +112,25 @@ export function UserProfileCard({ user, onEdit }: UserProfileCardProps) {
             </p>
           </div>
         </div>
+
+        {/* Data de Pagamento / Vencimento (Opcional) */}
+        {user.paymentDate && (
+          <div className="flex items-center gap-3 bg-white/[0.02] p-3 rounded-xl border border-white/[0.03]">
+            <div className="text-white/20">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] text-white/20 uppercase tracking-widest font-black mb-0.5">Vencimento</p>
+              <p className="text-xs text-white/60 font-medium tracking-tight">
+                {new Date(user.paymentDate).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
+        )}
 
       </div>
 

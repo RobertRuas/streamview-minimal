@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: 'USER' | 'ADMIN';
   viewMode: 'grid' | 'list';
+  paymentDate?: string | Date | null;
 }
 
 interface AuthState {

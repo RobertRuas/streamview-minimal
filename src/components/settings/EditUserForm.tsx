@@ -7,6 +7,7 @@ interface User {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  paymentDate?: string | Date | null;
 }
 
 interface EditUserFormProps {
@@ -25,13 +26,14 @@ export function EditUserForm({ user, onSave, onCancel, enableRoleChange }: EditU
   const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState(user.role);
   const [password, setPassword] = useState('');
+  const [paymentDate, setPaymentDate] = useState(user.paymentDate || '');
 
   return (
     <form 
       className="space-y-6" 
       onSubmit={(e) => { 
         e.preventDefault(); 
-        onSave({ name, email, role, password }); 
+        onSave({ name, email, role, password, paymentDate }); 
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -79,6 +81,16 @@ export function EditUserForm({ user, onSave, onCancel, enableRoleChange }: EditU
             </select>
           </label>
         )}
+
+        <label className="block">
+          <span className="text-xs text-white/40 uppercase font-black tracking-widest block mb-2 px-1">Vencimento (Opcional)</span>
+          <input 
+            type="date" 
+            value={paymentDate ? (typeof paymentDate === 'string' ? paymentDate.split('T')[0] : new Date(paymentDate).toISOString().split('T')[0]) : ''} 
+            onChange={e => setPaymentDate(e.target.value)}
+            className="w-full bg-black border border-white/10 rounded-lg p-3.5 text-white/90 focus:border-blue-500/50 outline-none transition-all"
+          />
+        </label>
       </div>
 
       <div className="flex gap-3 pt-4">
