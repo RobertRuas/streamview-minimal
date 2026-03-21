@@ -20,30 +20,19 @@ services:
 
   # 🌐 Aplicação Web (Backend API + Frontend estático)
   app:
-    build:
-      context: .
-      args:
-        # Variáveis passadas para o Vite durante o build do frontend
-        VITE_XTREAM_HOST: ${VITE_XTREAM_HOST}
-        VITE_XTREAM_USERNAME: ${VITE_XTREAM_USERNAME}
-        VITE_XTREAM_PASSWORD: ${VITE_XTREAM_PASSWORD}
-        VITE_TMDB_ACCESS_TOKEN: ${VITE_TMDB_ACCESS_TOKEN}
+    build: .
     container_name: streamview_app
     ports:
       - "3001:3001"
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
-      # Banco de dados (usa o nome do serviço "db" como host)
       - DATABASE_URL=postgresql://admin:adminpassword@db:5432/project_freedom?schema=public
-      # Segredo JWT (MUDE ISSO!)
-      - JWT_SECRET=${JWT_SECRET:-mude_esta_chave_secreta_agora}
-      - PORT=3001
       - NODE_ENV=production
-      # Proxy reverso para Xtream (usado em runtime pelo Express)
-      - VITE_XTREAM_HOST=${VITE_XTREAM_HOST}
-      - VITE_IMAGE_PROXY_TARGET=${VITE_IMAGE_PROXY_TARGET}
+      - PORT=3001
     restart: always
 
 volumes:
