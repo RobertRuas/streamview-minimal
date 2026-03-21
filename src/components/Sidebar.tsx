@@ -42,7 +42,7 @@ export function Sidebar({
   
   return (
     <aside
-      className={`sticky top-0 h-screen flex flex-col bg-[#0f0f0f] border-r border-[#121212] transition-all duration-500 ease-in-out z-20 ${isCollapsed ? 'w-24' : 'w-72'
+      className={`relative h-screen hidden md:flex flex-col bg-[#0f0f0f] border-r border-[#121212] transition-all duration-500 ease-in-out z-20 ${isCollapsed ? 'w-24' : 'w-72'
         }`}
     >
       <div className={`p-6 flex flex-col h-full ${isCollapsed ? 'items-center' : ''}`}>
