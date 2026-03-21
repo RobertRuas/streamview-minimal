@@ -34,6 +34,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [isTV, setIsTV] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   interface PlayingPlaylist {
     items: { 
@@ -495,7 +496,7 @@ export default function App() {
 
   return (
     <div className="h-screen bg-[#0a0a0a] text-white flex select-none overflow-hidden">
-      {/* Sidebar Fixo */}
+      {/* Sidebar (Drawer no Mobile) */}
       <Sidebar 
         activePage={activePage} 
         onPageChange={handlePageChange}
@@ -506,12 +507,19 @@ export default function App() {
           setShowOnlyFavorites(!showOnlyFavorites);
           setSearchQuery('');
         }}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
       {/* Conteúdo Principal */}
       <main ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto scroll-smooth">
-        <Header activePage={activePage} viewMode={viewMode} setViewMode={handleViewModeChange} />
-        <div className="pt-4 px-8 pb-32">
+        <Header 
+          activePage={activePage} 
+          viewMode={viewMode} 
+          setViewMode={handleViewModeChange} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
+        <div className="pt-4 px-4 md:px-8 pb-32">
           {renderPage()}
         </div>
       </main>

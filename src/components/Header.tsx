@@ -1,22 +1,31 @@
-import { LayoutList, LayoutGrid } from 'lucide-react';
+import { LayoutList, LayoutGrid, Menu } from 'lucide-react';
 import { Page, ViewMode } from '../types';
 
 interface HeaderProps {
   activePage: Page;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  onMenuClick?: () => void;
 }
 
 /**
- * Componente Header (Fixo para PC)
+ * Componente Header (Fixo para PC / Adaptável para Mobile)
  * Exibe o título da página atual e controles para alternar entre visualização de Lista e Grade.
+ * Adicionado suporte ao botão de menu hamburguer para telas mobile.
  */
-export function Header({ activePage, viewMode, setViewMode }: HeaderProps) {
+export function Header({ activePage, viewMode, setViewMode, onMenuClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#121212] px-8 py-6 flex items-center justify-between">
-      {/* Lado Esquerdo: Título */}
+    <header className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#121212] px-4 md:px-8 py-4 md:py-6 flex items-center justify-between">
+      {/* Lado Esquerdo: Título e Botão de Menu (Mobile) */}
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl lg:text-xl font-bold tracking-tight">{activePage}</h1>
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 -ml-2 text-white/70 hover:text-white transition-colors"
+          title="Abrir Menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl md:text-2xl lg:text-xl font-bold tracking-tight">{activePage}</h1>
       </div>
       
       {/* Lado Direito: Controles de Visualização (Lista/Grade) - Oculto em Detalhes */}
