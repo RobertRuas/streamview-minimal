@@ -13,10 +13,10 @@ interface HeaderProps {
  */
 export function Header({ activePage, viewMode, setViewMode }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#121212] px-4 md:px-8 py-4 md:py-6 flex items-center justify-between">
+    <header className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#121212] px-8 py-6 flex items-center justify-between">
       {/* Lado Esquerdo: Título */}
       <div className="flex items-center gap-4">
-        <h1 className="text-lg md:text-2xl lg:text-xl font-bold tracking-tight">{activePage}</h1>
+        <h1 className="text-2xl lg:text-xl font-bold tracking-tight">{activePage}</h1>
       </div>
       
       {/* Lado Direito: Controles de Visualização (Lista/Grade) - Oculto em Detalhes */}

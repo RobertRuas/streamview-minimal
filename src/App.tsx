@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Page, ViewMode, ContentItem } from './types';
 import { Sidebar } from './components/Sidebar';
-import { MobileNav } from './components/MobileNav';
 import { Header } from './components/Header';
 import { Home } from './pages/Home';
 import { ContentPage } from './pages/ContentPage';
@@ -512,7 +511,7 @@ export default function App() {
       {/* Conteúdo Principal */}
       <main ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto scroll-smooth">
         <Header activePage={activePage} viewMode={viewMode} setViewMode={handleViewModeChange} />
-        <div className="pt-4 px-4 md:px-8 pb-32">
+        <div className="pt-4 px-8 pb-32">
           {renderPage()}
         </div>
       </main>
@@ -546,8 +545,6 @@ export default function App() {
           <p className="mt-4 text-white font-medium tracking-wider">Carregando...</p>
         </div>
       )}
-
-      <MobileNav activePage={activePage} onPageChange={handlePageChange} />
 
       <ToastContainer />
     </div>
