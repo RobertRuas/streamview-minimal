@@ -4,12 +4,40 @@ import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+// Proxy reverso para a API Xtream IPTV (equivalente ao proxy do Vite em produção)
+if (process.env.VITE_XTREAM_HOST) {
+  app.use('/api-proxy', createProxyMiddleware({
+    target: process.env.VITE_XTREAM_HOST,
+    changeOrigin: true,
+    pathRewrite: { '^/api-proxy': '' },
+  }));
+}
+
+// Proxy reverso para imagens (equivalente ao proxy do Vite em produção)
+if (process.env.VITE_IMAGE_PROXY_TARGET) {
+  app.use('/image-proxy', createProxyMiddleware({
+    target: process.env.VITE_IMAGE_PROXY_TARGET,
+    changeOrigin: true,
+    secure: false,
+    pathRewrite: { '^/image-proxy': '' },
+  }));
+}
+
+// Servir arquivos estáticos do Frontend (Vite Build)
+app.use(express.static(path.join(__dirname, 'dist')));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-super-secret-key-123';
 
@@ -531,7 +559,14 @@ app.get('/api/admin/db-preview', authMiddleware, adminMiddleware, async (req, re
   }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => {
+// SPA fallback: Todas as rotas que não são da API retornam o index.html
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`📡 Backend Server rodando na porta ${PORT}`);
 });
