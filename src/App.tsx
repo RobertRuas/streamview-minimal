@@ -276,8 +276,12 @@ export default function App() {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (isManual = false) => {
     setActivePage(previousPage);
+    // Se for manualmente (via clique no botão da UI), removemos do histórico para sincronizar
+    if (isManual && window.history.state?.modal === 'details') {
+      window.history.back();
+    }
     setTimeout(() => {
       if (mainRef.current) {
         mainRef.current.scrollTo(0, scrollPositions[previousPage] || 0);
@@ -289,6 +293,7 @@ export default function App() {
     setSelectedItem(item);
     setSearchQuery('');
     handlePageChange('Detalhes');
+    window.history.pushState({ modal: 'details' }, '');
   };
 
   const updatePageState = (type: 'TV' | 'Movie' | 'Series', state: any) => {
@@ -297,11 +302,40 @@ export default function App() {
     else setSeriesState(state);
   };
 
-  // Gerencia o loop do player
+  // --- Controle do Botão Voltar (Smart TV / Mobile) ---
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Se o Player estiver aberto, fechamos ele primeiro
+      if (playingStream) {
+        setPlayingStream(null);
+        setRefreshTrigger(prev => prev + 1);
+        return;
+      }
+
+      // Se a página de Detalhes estiver aberta, voltamos para a listagem
+      if (activePage === 'Detalhes') {
+        handleBack();
+        return;
+      }
+      
+      // Se o menu lateral estiver aberto no mobile, fechamos ele
+      if (isSidebarOpen) {
+        setIsSidebarOpen(false);
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [playingStream, activePage, isSidebarOpen, previousPage]);
+
+  // Gerencia o loop do player e atalhos de teclado
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activePage === 'Detalhes' && e.key === 'Escape') {
-        handleBack();
+        // No PC o Escape também aciona o voltar, mas chamamos history.back 
+        // para manter a consistência com o popstate
+        window.history.back();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -445,10 +479,13 @@ export default function App() {
             onBack={handleBack}
             isTV={isTV}
             refreshTrigger={refreshTrigger}
-            onPlay={(items, index) => setPlayingStream({ 
-              items: items as any,
-              currentIndex: index
-            })}
+            onPlay={(items, index) => {
+              setPlayingStream({ 
+                items: items as any,
+                currentIndex: index
+              });
+              window.history.pushState({ modal: 'player' }, '');
+            }}
           />
         ) : (
           <Home
@@ -508,7 +545,12 @@ export default function App() {
           setSearchQuery('');
         }}
         isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        onClose={() => {
+          setIsSidebarOpen(false);
+          if (window.history.state?.modal === 'sidebar') {
+            window.history.back();
+          }
+        }}
       />
       
       {/* Conteúdo Principal */}
@@ -517,7 +559,10 @@ export default function App() {
           activePage={activePage} 
           viewMode={viewMode} 
           setViewMode={handleViewModeChange} 
-          onMenuClick={() => setIsSidebarOpen(true)}
+          onMenuClick={() => {
+            setIsSidebarOpen(true);
+            window.history.pushState({ modal: 'sidebar' }, '');
+          }}
         />
         <div className="pt-4 px-4 md:px-8 pb-32">
           {renderPage()}
@@ -538,6 +583,9 @@ export default function App() {
           onClose={() => {
             setPlayingStream(null);
             setRefreshTrigger(prev => prev + 1); // Força refresh de progresso nos detalhes
+            if (window.history.state?.modal === 'player') {
+              window.history.back();
+            }
           }}
           onNext={() => {
             if (playingStream.currentIndex < playingStream.items.length - 1) {
