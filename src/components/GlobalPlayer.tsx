@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { useAuthStore } from '../store/auth.store';
+import { API_BASE_URL } from '../config/api';
 
 interface GlobalPlayerProps {
   streamUrl: string;
   title?: string;
+  streamId?: string;
+  contentType?: 'TV' | 'MOVIE' | 'SERIES' | 'EPISODE';
+  seriesId?: string;
+  seasonId?: string;
+  episodeNum?: number;
+  startAt?: number;
   onClose: () => void;
+  onNext?: () => void;
 }
 
 /**
@@ -14,16 +23,57 @@ interface GlobalPlayerProps {
  * Não usa a API de Fullscreen do navegador — ocupa 100% da viewport por estilo.
  * Preserva o estado da UI por trás enquanto exibe o conteúdo.
  */
-export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
+export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId, seasonId, episodeNum, startAt, onClose, onNext }: GlobalPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const showControlsTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastSyncTimeRef = useRef<number>(0);
 
   const [isBuffering, setIsBuffering] = useState(true);
   const [isUIVisible, setIsUIVisible] = useState(true);
 
   // Flag para suprimir erros de rede após o vídeo já ter iniciado reprodução
   const hasStartedPlaying = useRef(false);
+
+  // Inteceptação de Progresso (Assistindo)
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video || !streamId || !contentType) return;
+
+    const currentTime = video.currentTime;
+    const duration = video.duration || 0;
+
+    // Apenas sincroniza com o Backend a cada 10 segundos para não floodar a API
+    if (currentTime - lastSyncTimeRef.current >= 10) {
+      syncProgress(currentTime, duration);
+    }
+  };
+
+  const syncProgress = (currentTime: number, duration: number) => {
+    if (!streamId || !contentType) return;
+    lastSyncTimeRef.current = currentTime;
+    
+    const token = useAuthStore.getState().token;
+
+    if (token) {
+      fetch(`${API_BASE_URL}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            streamId,
+            contentType,
+            seriesId,
+            seasonId,
+            episodeNum,
+            progressSecs: Math.floor(currentTime),
+            durationSecs: Math.floor(duration)
+          })
+      }).catch(err => console.error('Erro silencioso de progresso', err));
+    }
+  };
 
   // Sumiço automático da UI após 3 segundos sem interação
   const handleMouseMove = () => {
@@ -55,6 +105,7 @@ export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
       manifestLoadingMaxRetry: 5,
       manifestLoadingRetryDelay: 2000,
       levelLoadingMaxRetry: 4,
+      startPosition: startAt && startAt > 0 ? startAt : -1,
     };
 
     const initializePlayer = () => {
@@ -66,6 +117,9 @@ export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (startAt && startAt > 0) {
+            video.currentTime = startAt;
+          }
           setTimeout(() => {
             video.play().catch(e => console.error('Auto-play prevented:', e));
           }, 300);
@@ -102,9 +156,17 @@ export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
         });
 
       } else if (video.canPlayType('application/vnd.apple.mpegurl') || !streamUrl.includes('.m3u8')) {
-        // Fallback para Safari/HLS nativo ou MP4 direto
-        video.src = streamUrl;
+        // Fallback para Safari/HLS nativo ou MP4 direto. Hash #t= resolve a seek inicial em MP4/MKV.
+        let sourceUrl = streamUrl;
+        if (startAt && startAt > 0 && !streamUrl.includes('.m3u8')) {
+          sourceUrl = `${streamUrl}#t=${startAt}`;
+        }
+        
+        video.src = sourceUrl;
         video.addEventListener('loadedmetadata', () => {
+          if (startAt && startAt > 0 && streamUrl.includes('.m3u8')) {
+            video.currentTime = startAt;
+          }
           video.play().catch(e => console.error('Auto-play prevented:', e));
         });
       }
@@ -164,8 +226,14 @@ export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      // Sincronização final ao fechar o player
+      if (videoRef.current) {
+        syncProgress(videoRef.current.currentTime, videoRef.current.duration || 0);
+      }
+    };
+  }, [onClose, streamId, contentType]); // Adicionado deps para o sync final
 
   return (
     <div
@@ -180,6 +248,11 @@ export function GlobalPlayer({ streamUrl, title, onClose }: GlobalPlayerProps) {
         controls={isUIVisible}
         autoPlay
         playsInline
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={() => {
+          if (onNext) onNext();
+          else onClose();
+        }}
       />
 
       {/* Overlay de carregamento — só aparece antes do vídeo iniciar */}

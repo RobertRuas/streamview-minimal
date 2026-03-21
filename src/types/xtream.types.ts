@@ -77,6 +77,7 @@ export interface BaseContentItem {
   id: string;
   name: string;
   category: string;
+  categoryId: string;
   type: ContentType;
   isFavorite: boolean;
   imageUrl: string;

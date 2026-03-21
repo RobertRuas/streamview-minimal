@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ==========================================
@@ -33,6 +33,7 @@ model User {
   name          String?
   role          Role           @default(USER) // Identifica se é usuário comum ou Admin
   active        Boolean        @default(true) // Admin pode inativar um usuário
+  viewMode      String         @default("grid") // list ou grid
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -41,6 +42,23 @@ model User {
   favorites     Favorite[]
   progress      Progress[]
   devices       Device[]
+  hidden        HiddenCategory[]
+}
+
+// ==========================================
+// 6. Categorias Ocultas (TV, Filme, Série)
+// ==========================================
+model HiddenCategory {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  categoryId  String      // ID da categoria na API Xtream
+  contentType ContentType // TV, MOVIE ou SERIES
+  addedAt     DateTime    @default(now())
+
+  // Garante que não duplique a categoria oculta para o mesmo usuário e tipo
+  @@unique([userId, categoryId, contentType]) 
 }
 
 // ==========================================
@@ -66,10 +84,12 @@ model Device {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  fingerprint String   @unique // Hash/Identificador gerado pelo frontend (ClientJS/FingerprintJS)
-  name        String?  // Nome amigável (ex: "Smart TV Sala", "Chrome PC")
-  isApproved  Boolean  @default(false) // Por padrão entra bloqueado, Admin libera
-  lastSeen    DateTime @default(now())
+  fingerprint   String   @unique // Hash/Identificador gerado pelo frontend (ClientJS/FingerprintJS)
+  name          String?  // Nome amigável (ex: "Smart TV Sala", "Chrome PC")
+  isApproved    Boolean  @default(false) // Por padrão entra bloqueado, Admin libera
+  autoLogin     Boolean  @default(false) // Define se o dispositivo permite pular a tela de senha
+  sessionActive Boolean  @default(false) // Permite manter o device salvo mas com sessão inativa
+  lastSeen      DateTime @default(now())
   
   createdAt   DateTime @default(now())
 }
@@ -102,6 +122,7 @@ model Progress {
   contentType    ContentType // MOVIE ou EPISODE
   seriesId       String?     // Opcional: ID da série pai, útil para buscar "último eps assistido de X série"
   seasonId       String?     // Opcional: ID da temporada pai, útil para buscar "Assistindo EP X da Temp Y"
+  episodeNum     Int?        // Opcional: Número do episódio (ex: 5)
   
   progressSecs   Int         // Em qual segundo o usuário pausou
   durationSecs   Int         // Duração total do vídeo

@@ -7,7 +7,7 @@ interface ContentListProps {
   items: ContentItem[];
   viewMode: ViewMode;
   favorites: string[];
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string, type?: 'TV' | 'MOVIE' | 'SERIES') => void;
   onItemClick?: (item: ContentItem) => void;
   isTV?: boolean;
 }
@@ -56,13 +56,17 @@ export function ContentList({
                 imageClassName="group-hover:scale-110 group-focus:scale-110"
                 aspect="video"
               >
-                {/* Barra de progresso rápida no card */}
-                {item.progress !== undefined && item.progress > 0 && (
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10">
-                    <div className="h-full bg-white" style={{ width: `${item.progress}%` }} />
-                  </div>
-                )}
               </ContentPoster>
+
+              {/* Barra de Progresso Discreta (Série/Filme) */}
+              {item.progress !== undefined && item.progress > 0 && (
+                <div className="w-full h-[3px] bg-white/5 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-1000 ${item.type === 'Series' ? 'bg-yellow-500/50' : 'bg-white/40'}`}
+                    style={{ width: `${item.progress}%` }} 
+                  />
+                </div>
+              )}
               
               {/* Informações do Item */}
               <div className="flex items-start justify-between gap-3 flex-1 p-3">
@@ -73,9 +77,21 @@ export function ContentList({
                   <p className="text-[10px] sm:text-xs lg:text-[10px] text-white/40 mt-1 uppercase tracking-tight">{item.category}</p>
                 </div>
                 
-                <div className={`transition-colors flex-shrink-0 ${favorites.includes(item.id) ? 'text-yellow-500' : 'text-white/10 opacity-0 group-hover:opacity-100'}`}>
-                  <Star className={`w-4 h-4 ${favorites.includes(item.id) ? 'fill-current' : ''}`} />
-                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const typeMap: Record<string, 'TV' | 'MOVIE' | 'SERIES'> = {
+                      'Movie': 'MOVIE',
+                      'Series': 'SERIES',
+                      'TV': 'TV'
+                    };
+                    onToggleFavorite(item.id, typeMap[item.type] || 'MOVIE');
+                  }}
+                  className={`transition-all p-2 rounded-full hover:bg-white/10 ml-auto flex-shrink-0 ${favorites.includes(item.id) ? 'text-yellow-500 opacity-100' : 'text-white/10 opacity-0 group-hover:opacity-100 hover:text-white/50'}`}
+                  title={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                >
+                  <Star className={`w-5 h-5 ${favorites.includes(item.id) ? 'fill-current scale-110' : ''}`} />
+                </button>
               </div>
             </button>
           </div>
@@ -133,9 +149,21 @@ export function ContentList({
 
             {/* Ações e Metadados */}
             <div className="flex items-center gap-4 flex-shrink-0">
-              <div className={`transition-colors ${favorites.includes(item.id) ? 'text-yellow-500' : 'text-white/5 opacity-0 group-hover:opacity-100'}`}>
-                <Star className={`w-5 h-5 ${favorites.includes(item.id) ? 'fill-current' : ''}`} />
-              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const typeMap: Record<string, 'TV' | 'MOVIE' | 'SERIES'> = {
+                    'Movie': 'MOVIE',
+                    'Series': 'SERIES',
+                    'TV': 'TV'
+                  };
+                  onToggleFavorite(item.id, typeMap[item.type] || 'MOVIE');
+                }}
+                className={`transition-all p-3 rounded-full hover:bg-white/10 ${favorites.includes(item.id) ? 'text-yellow-500' : 'text-white/5 opacity-0 group-hover:opacity-100 hover:text-white/40'}`}
+                title={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              >
+                <Star className={`w-6 h-6 ${favorites.includes(item.id) ? 'fill-current' : ''}`} />
+              </button>
             </div>
           </button>
         </div>

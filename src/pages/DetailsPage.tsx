@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Play, ChevronLeft, Star, Clock, Users, User } from 'lucide-react';
+import { Play, ChevronLeft, Star, Clock, Users, User, PlayCircle } from 'lucide-react';
 import { ContentItem } from '../types';
 import { ContentPoster } from '../components/ContentPoster';
 import { tmdbService, TMDBMovie } from '../services/tmdb.service';
 import { xtreamService } from '../services/xtream.service';
 import { DetailsSeriesPage } from './DetailsSeriesPage';
+import { API_BASE_URL } from '../config/api';
 
 interface DetailsPageProps {
   item: ContentItem;
   favorites: string[];
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string, type?: 'TV' | 'MOVIE' | 'SERIES') => void;
   onBack: () => void;
   isTV?: boolean;
-  onPlay?: (url: string, title?: string) => void;
+  onPlay?: (items: { url: string; title: string; streamId: string; contentType: 'TV' | 'MOVIE' | 'SERIES' | 'EPISODE'; seriesId?: string; seasonId?: string; episodeNum?: number; startAt?: number; }[], index: number) => void;
+  refreshTrigger?: number;
 }
 
 /**
@@ -20,11 +22,46 @@ interface DetailsPageProps {
  * Exibe informações detalhadas sobre um Filme ou Série.
  * Inclui busca automática no TMDB para enriquecer metadados.
  */
-export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, onPlay }: DetailsPageProps) {
+export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, onPlay, refreshTrigger }: DetailsPageProps) {
   const isFavorite = favorites.includes(item.id);
   const [tmdbData, setTmdbData] = useState<TMDBMovie | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showEpisodesModal, setShowEpisodesModal] = useState(false);
+  const [lastProgress, setLastProgress] = useState<any | null>(null);
+
+  // Busca progresso recente (Séries ou Filmes)
+  useEffect(() => {
+    if (!onPlay) return;
+
+    async function fetchItemProgress() {
+      try {
+        const token = localStorage.getItem('streamview-auth-storage') 
+          ? JSON.parse(localStorage.getItem('streamview-auth-storage') || '{}').state?.token 
+          : null;
+        if (!token) return;
+
+        const res = await fetch(`${API_BASE_URL}/progress`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (item.type === 'Series') {
+            const seriesProg = data.data
+              .filter((p: any) => p.seriesId === String(item.id))
+              .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+            setLastProgress(seriesProg || null);
+          } else {
+            const movieProg = data.data.find((p: any) => p.streamId === String(item.id));
+            setLastProgress(movieProg || null);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar progresso:', err);
+      }
+    }
+
+    fetchItemProgress();
+  }, [item.id, refreshTrigger]);
 
   // Busca informações adicionais no TMDB para Filmes e Séries
   useEffect(() => {
@@ -123,7 +160,14 @@ export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, o
                   {item.name}
                 </h1>
                 <button
-                  onClick={() => onToggleFavorite(item.id)}
+                  onClick={() => {
+                    const typeMap: Record<string, 'TV' | 'MOVIE' | 'SERIES'> = {
+                      'Movie': 'MOVIE',
+                      'Series': 'SERIES',
+                      'TV': 'TV'
+                    };
+                    onToggleFavorite(item.id, typeMap[item.type] || 'MOVIE');
+                  }}
                   className={`p-4 rounded-full border transition-all hover:scale-110 active:scale-90 ${isFavorite
                     ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.2)]'
                     : 'bg-white/5 border-white/10 text-white/20 hover:text-white/60 hover:border-white/20'
@@ -162,24 +206,63 @@ export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, o
               {displayDescription || 'Nenhuma descrição disponível.'}
             </p>
 
-            {/* Botão de Ação Principal */}
-            <button 
-              onClick={() => {
-                if (item.type === 'Series') {
-                  setShowEpisodesModal(true);
-                } else if (onPlay) {
-                  const type = item.type === 'TV' ? 'live' : 'movie';
-                  const ext = item.type === 'TV' ? 'm3u8' : 'mp4';
-                  const url = xtreamService.getStreamUrl(item.id, type, ext);
-                  onPlay(url, item.name);
-                }
-              }}
-              className={`w-fit bg-white text-black font-black flex items-center justify-center gap-4 rounded-sm hover:bg-white/90 active:scale-95 transition-all uppercase tracking-[0.2em] focus:ring-8 focus:ring-white/20 focus:outline-none shadow-2xl ${isTV ? 'px-14 py-8 text-xl shadow-[0_0_40px_rgba(255,255,255,0.15)] mt-16 mb-10' : 'px-12 py-5 text-lg mt-10 mb-12'
-              }`}
-            >
-              <Play className={`${isTV ? 'w-8 h-8' : 'w-5 h-5'} fill-current`} />
-              {item.type === 'TV' ? 'Abrir Canal' : (item.type === 'Series' ? 'Ver Episódios' : 'Reproduzir')}
-            </button>
+            {/* Botões de Ação */}
+            <div className="flex flex-wrap items-center gap-6">
+              <button 
+                onClick={() => {
+                  if (item.type === 'Series') {
+                    setShowEpisodesModal(true);
+                  } else if (onPlay) {
+                    const type = item.type === 'TV' ? 'live' : 'movie';
+                    const ext = item.type === 'TV' ? 'm3u8' : 'mp4';
+                    const url = xtreamService.getStreamUrl(item.id, type, ext);
+                    const contentTypeMap: Record<string, 'TV' | 'MOVIE' | 'SERIES'> = {
+                      'TV': 'TV', 'Movie': 'MOVIE', 'Series': 'SERIES'
+                    };
+                    onPlay([{
+                      url,
+                      title: item.name,
+                      streamId: String(item.id),
+                      contentType: contentTypeMap[item.type] || 'MOVIE',
+                      startAt: lastProgress ? lastProgress.progressSecs : 0
+                    }], 0);
+                  }
+                }}
+                className={`w-fit bg-white text-black font-black flex items-center justify-center gap-4 rounded-sm hover:bg-white/90 active:scale-95 transition-all uppercase tracking-[0.2em] focus:ring-8 focus:ring-white/20 focus:outline-none shadow-2xl ${isTV ? 'px-14 py-8 text-xl shadow-[0_0_40px_rgba(255,255,255,0.15)] mt-16 mb-10' : 'px-12 py-5 text-lg mt-10 mb-12'
+                }`}
+              >
+                <Play className={`${isTV ? 'w-8 h-8' : 'w-5 h-5'} fill-current`} />
+                {item.type === 'TV' ? 'Abrir Canal' : (item.type === 'Series' ? 'Ver Episódios' : 'Reproduzir')}
+              </button>
+
+              {item.type === 'Series' && lastProgress && (
+                <button
+                  onClick={() => {
+                    if (onPlay) {
+                      onPlay([{
+                        url: xtreamService.getStreamUrl(lastProgress.streamId, 'series', 'mp4'),
+                        title: `${item.name} - T${lastProgress.seasonId} E${lastProgress.episodeNum}`,
+                        streamId: lastProgress.streamId,
+                        contentType: 'EPISODE',
+                        seriesId: String(item.id),
+                        seasonId: lastProgress.seasonId,
+                        episodeNum: lastProgress.episodeNum,
+                        startAt: lastProgress.progressSecs || 0
+                      }], 0);
+                    }
+                  }}
+                  className="w-fit bg-white/10 hover:bg-white/20 text-white border border-white/20 flex flex-col items-start px-8 py-3 rounded-sm transition-all group active:scale-95"
+                >
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50 group-hover:text-white transition-colors">
+                    <PlayCircle className="w-4 h-4 text-yellow-500" />
+                    Continuar de onde parou
+                  </div>
+                  <div className="text-sm font-black uppercase mt-0.5 tracking-tighter">
+                    Temporada {lastProgress.seasonId} • Ep {lastProgress.episodeNum}
+                  </div>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Seção de Elenco (Se disponível no TMDB) */}
@@ -231,6 +314,7 @@ export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, o
           onClose={() => setShowEpisodesModal(false)} 
           isTV={isTV}
           onPlay={onPlay}
+          refreshTrigger={refreshTrigger}
         />
       )}
     </div>

@@ -1,13 +1,17 @@
-import { Search, Home, Tv, Film, Clapperboard, Settings, XCircle } from 'lucide-react';
+import { Search, Home, Tv, Film, Clapperboard, Settings, XCircle, LogOut } from 'lucide-react';
+import { useAuthStore } from '../store/auth.store';
+import fpPromise from '@fingerprintjs/fingerprintjs';
 import { Page } from '../types';
 import { NavItem } from './NavItem';
 
 interface SidebarProps {
   activePage: Page;
-  setActivePage: (page: Page) => void;
+  onPageChange: (page: Page) => void;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  onSearchChange: (query: string) => void;
   isCollapsed?: boolean;
+  showOnlyFavorites?: boolean;
+  onToggleFavorites?: () => void;
 }
 
 /**
@@ -17,14 +21,28 @@ interface SidebarProps {
  */
 export function Sidebar({
   activePage,
-  setActivePage,
+  onPageChange,
   searchQuery,
-  setSearchQuery,
-  isCollapsed = false
+  onSearchChange,
+  isCollapsed = false,
+  showOnlyFavorites = false,
+  onToggleFavorites,
 }: SidebarProps) {
+  const { logout } = useAuthStore();
+  
+  const handleLogout = async () => {
+    try {
+      const fp = await fpPromise.load();
+      const result = await fp.get();
+      await logout(result.visitorId);
+    } catch (err) {
+      await logout(); // Fallback se o FP falhar
+    }
+  };
+  
   return (
     <aside
-      className={`relative flex flex-col bg-[#0f0f0f] border-r border-[#121212] transition-all duration-500 ease-in-out z-20 ${isCollapsed ? 'w-24' : 'w-72'
+      className={`sticky top-0 h-screen flex flex-col bg-[#0f0f0f] border-r border-[#121212] transition-all duration-500 ease-in-out z-20 ${isCollapsed ? 'w-24' : 'w-72'
         }`}
     >
       <div className={`p-6 flex flex-col h-full ${isCollapsed ? 'items-center' : ''}`}>
@@ -46,12 +64,12 @@ export function Sidebar({
               type="text"
               placeholder="Pesquisar..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-sm py-2 pl-10 pr-10 text-sm focus:outline-none focus:border-white/20 transition-colors"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => onSearchChange('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors p-1 rounded-full hover:bg-white/10"
                 title="Limpar pesquisa"
               >
@@ -67,28 +85,28 @@ export function Sidebar({
             icon={<Home className={isCollapsed ? "w-6 h-6" : "w-4 h-4"} />}
             label={isCollapsed ? "" : "Inicio"}
             active={activePage === 'Inicio'}
-            onClick={() => setActivePage('Inicio')}
+            onClick={() => onPageChange('Inicio')}
             hideLabel={isCollapsed}
           />
           <NavItem
             icon={<Tv className={isCollapsed ? "w-6 h-6" : "w-4 h-4"} />}
             label={isCollapsed ? "" : "TV ao Vivo"}
             active={activePage === 'TV'}
-            onClick={() => setActivePage('TV')}
+            onClick={() => onPageChange('TV')}
             hideLabel={isCollapsed}
           />
           <NavItem
             icon={<Film className={isCollapsed ? "w-6 h-6" : "w-4 h-4"} />}
             label={isCollapsed ? "" : "Cine Filmes"}
             active={activePage === 'Filmes'}
-            onClick={() => setActivePage('Filmes')}
+            onClick={() => onPageChange('Filmes')}
             hideLabel={isCollapsed}
           />
           <NavItem
             icon={<Clapperboard className={isCollapsed ? "w-6 h-6" : "w-4 h-4"} />}
             label={isCollapsed ? "" : "Séries"}
             active={activePage === 'Series'}
-            onClick={() => setActivePage('Series')}
+            onClick={() => onPageChange('Series')}
             hideLabel={isCollapsed}
           />
         </nav>
@@ -99,7 +117,14 @@ export function Sidebar({
             icon={<Settings className={isCollapsed ? "w-6 h-6" : "w-4 h-4"} />}
             label={isCollapsed ? "" : "Ajustes"}
             active={activePage === 'Configuracoes'}
-            onClick={() => setActivePage('Configuracoes')}
+            onClick={() => onPageChange('Configuracoes')}
+            hideLabel={isCollapsed}
+          />
+          <NavItem
+            icon={<LogOut className={isCollapsed ? "w-6 h-6 text-red-500/70" : "w-4 h-4 text-red-500/70"} />}
+            label={isCollapsed ? "" : "Sair"}
+            active={false}
+            onClick={handleLogout}
             hideLabel={isCollapsed}
           />
         </div>

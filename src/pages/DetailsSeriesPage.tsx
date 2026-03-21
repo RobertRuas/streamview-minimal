@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import { Play, ChevronDown, ChevronUp, X, Clock, Loader2, Star, PlayCircle } from 'lucide-react';
 import { ContentItem } from '../types';
 import { xtreamService } from '../services/xtream.service';
+import { useAuthStore } from '../store/auth.store';
+import { API_BASE_URL } from '../config/api';
 
 interface DetailsSeriesPageProps {
   item: ContentItem;
   onClose: () => void;
   isTV?: boolean;
-  onPlay?: (url: string, title?: string) => void;
+  onPlay?: (items: { url: string; title: string; streamId: string; contentType: 'TV' | 'MOVIE' | 'SERIES' | 'EPISODE'; seriesId?: string; seasonId?: string; episodeNum?: number; startAt?: number; }[], index: number) => void;
+  refreshTrigger?: number;
 }
 
 /**
  * DetailsSeriesPage
  * Exibe as temporadas e episódios de uma série com visual Premium e Sólido.
  */
-export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay }: DetailsSeriesPageProps) {
+export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refreshTrigger }: DetailsSeriesPageProps) {
   const [seasons, setSeasons] = useState<any[]>([]);
   const [expandedSeasonId, setExpandedSeasonId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,15 +70,41 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay }: Detai
           }
         }
 
+        // 3. Buscar o progresso do usuário no nosso Banco de Dados
+        let dbProgress: any[] = [];
+        try {
+          const token = useAuthStore.getState().token;
+          
+          if (token) {
+            const progressRes = await fetch(`${API_BASE_URL}/progress`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const progressData = await progressRes.json();
+            if (progressData.success) dbProgress = progressData.data;
+          }
+        } catch (pErr) {
+          console.warn('Erro ao buscar progresso (não crítico):', pErr);
+        }
+
         const finalSeasons = parsedSeasons.map(s => ({
           ...s,
-          episodes: s.episodes.map((e: any, idx: number) => ({
-            id: String(e.id || e.id_stream || e.stream_id || `ep-${idx}`),
-            name: String(e.title || e.name || `Episódio ${e.episode_num || idx + 1}`),
-            duration: String(e.info?.duration || e.duration || '00:00'),
-            progress: Number(e.info?.progress || e.progress || 0),
-            streamUrl: String(e.url || e.direct_source || '')
-          }))
+          episodes: s.episodes.map((e: any, idx: number) => {
+            const streamId = String(e.id || e.id_stream || e.stream_id || `ep-${idx}`);
+            // Encontra o registro de progresso para este episódio
+            const progRecord = dbProgress.find(p => p.streamId === streamId);
+            const calculatedProgress = (progRecord && progRecord.durationSecs > 0)
+              ? Math.floor((progRecord.progressSecs / progRecord.durationSecs) * 100)
+              : Number(e.info?.progress || e.progress || 0);
+
+            return {
+              id: streamId,
+              name: String(e.title || e.name || `Episódio ${e.episode_num || idx + 1}`),
+              duration: String(e.info?.duration || e.duration || '00:00'),
+              progress: calculatedProgress,
+              streamUrl: String(e.url || e.direct_source || ''),
+              startAt: progRecord ? progRecord.progressSecs : 0
+            };
+          })
         })).sort((a, b) => (Number(a.number) || 0) - (Number(b.number) || 0));
 
         setSeasons(finalSeasons);
@@ -202,8 +231,18 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay }: Detai
                             key={episode.id}
                             onClick={() => {
                               if (onPlay) {
-                                const url = xtreamService.getStreamUrl(episode.id, 'series', 'mp4');
-                                onPlay(url, `${item.name} - Temporada ${season.number} Episódio ${idx + 1}`);
+                                // Cria a playlist com todos os episódios da temporada atual
+                                const playlist = season.episodes.map((ep: any, i: number) => ({
+                                  url: xtreamService.getStreamUrl(ep.id, 'series', 'mp4'),
+                                  title: `${item.name} - T${season.number} E${i + 1}`,
+                                  streamId: String(ep.id),
+                                  contentType: 'EPISODE' as const,
+                                  seriesId: String(item.id),
+                                  seasonId: String(season.number),
+                                  episodeNum: i + 1,
+                                  startAt: ep.startAt || 0
+                                }));
+                                onPlay(playlist, idx);
                               }
                             }}
                             className="group/ep bg-[#0c0c0c] p-6 flex items-center gap-6 hover:bg-[#151515] transition-all cursor-pointer relative"

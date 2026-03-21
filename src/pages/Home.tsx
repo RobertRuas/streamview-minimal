@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Users } from 'lucide-react';
 import { ContentItem, ViewMode } from '../types';
 import { ContentList } from '../components/ContentList';
 
@@ -10,7 +10,7 @@ interface HomeProps {
   viewMode: ViewMode;
   searchQuery: string;
   favorites: string[];
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string, type?: 'TV' | 'MOVIE' | 'SERIES') => void;
   onItemClick: (item: ContentItem) => void;
   onSeeMore: (page: any) => void;
   isLoading?: boolean;
@@ -19,7 +19,7 @@ interface HomeProps {
 
 /**
  * Página Inicial (Home)
- * Exibe um resumo dos conteúdos da API real filtrados ou favoritos.
+ * Exibe um resumo dos conteúdos favoritados pelo usuário.
  */
 export function Home({
   channels,
@@ -35,16 +35,37 @@ export function Home({
   isTV
 }: HomeProps) {
 
-  // Lógica para busca global removida (agora centralizada no App.tsx via GlobalSearch)
+  // Filtra apenas os itens favoritos para cada categoria
+  const favChannels = useMemo(() => channels.filter(c => favorites.includes(String(c.id))), [channels, favorites]);
+  const favMovies = useMemo(() => movies.filter(m => favorites.includes(String(m.id))), [movies, favorites]);
+  const favSeries = useMemo(() => series.filter(s => favorites.includes(String(s.id))), [series, favorites]);
 
-  // Organiza as seções com 10 itens cada (conforme solicitado)
+  // Organiza as seções
   const homeSections = useMemo(() => {
     return [
-      { title: 'Canais de TV', items: channels.slice(0, 6), type: 'TV' as const, page: 'TV' as const },
-      { title: 'Filmes | Lançamentos', items: movies.slice(0, 6), type: 'Movie' as const, page: 'Filmes' as const },
-      { title: 'Séries em Destaque', items: series.slice(0, 6), type: 'Series' as const, page: 'Series' as const }
+      { 
+        title: 'Canais Favoritos', 
+        items: favChannels.slice(0, 6), 
+        totalCount: favChannels.length,
+        type: 'TV' as const, 
+        page: 'TV' as const 
+      },
+      { 
+        title: 'Filmes Favoritos', 
+        items: favMovies.slice(0, 6), 
+        totalCount: favMovies.length,
+        type: 'Movie' as const, 
+        page: 'Filmes' as const 
+      },
+      { 
+        title: 'Séries Favoritas', 
+        items: favSeries.slice(0, 6), 
+        totalCount: favSeries.length,
+        type: 'Series' as const, 
+        page: 'Series' as const 
+      }
     ];
-  }, [channels, movies, series]);
+  }, [favChannels, favMovies, favSeries]);
 
   if (isLoading) {
     return (
@@ -54,35 +75,53 @@ export function Home({
     );
   }
 
-  // Blocos de busca removidos (agora centralizados no App.tsx via GlobalSearch)
-
-  // Caso contrário, exibe as seções principais
   return (
     <div className="space-y-12">
-      {homeSections.map((section, idx) => (
-        <section key={idx}>
-          {/* Cabeçalho da Seção */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg lg:text-base font-medium text-white/90">{section.title}</h2>
-            <button
-              className="text-xs text-white/40 hover:text-white/60 flex items-center gap-1 transition-colors group"
-              onClick={() => onSeeMore(section.page)}
-            >
-              Ver mais <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
+      {homeSections.map((section, idx) => {
+        if (section.items.length === 0) return null;
+        
+        return (
+          <section key={idx}>
+            {/* Cabeçalho da Seção */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg lg:text-base font-medium text-white/90">{section.title}</h2>
+                <span className="bg-white/10 text-white/40 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">{section.totalCount} salvos</span>
+                {/* Nota: O filtro acima é local, mas section.items já é filtrado por favoritos. Porém o total de favoritos do tipo pode ser maior que 6. */}
+                {/* Vou usar o count real da lista filtrada completa. */}
+              </div>
+              <button
+                className="text-xs text-white/40 hover:text-white/60 flex items-center gap-1 transition-colors group"
+                onClick={() => onSeeMore({ type: section.page, onlyFavorites: true })}
+              >
+                Ver todos os favoritos <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
 
-          {/* Lista de Conteúdo da Seção */}
-          <ContentList
-            items={section.items}
-            viewMode={viewMode}
-            favorites={favorites}
-            onToggleFavorite={onToggleFavorite}
-            onItemClick={onItemClick}
-            isTV={isTV}
-          />
-        </section>
-      ))}
+            {/* Lista de Conteúdo da Seção */}
+            <ContentList
+              items={section.items}
+              viewMode={viewMode}
+              favorites={favorites}
+              onToggleFavorite={onToggleFavorite}
+              onItemClick={onItemClick}
+              isTV={isTV}
+            />
+          </section>
+        );
+      })}
+      
+      {homeSections.every(s => s.items.length === 0) && (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
+            <Users className="w-8 h-8 text-white/20" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white mb-2">Seu Dashboard está vazio</h2>
+            <p className="text-white/40 max-w-xs mx-auto text-sm">Adicione canais, filmes ou séries aos seus favoritos para vê-los aqui na página inicial.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,6 +20,8 @@ interface ContentPageProps {
   initialCatPage?: number;
   onStateChange?: (state: Partial<{categoryId: string, page: number, catPage: number}>) => void;
   isTV?: boolean;
+  showOnlyFavorites?: boolean;
+  onBack?: () => void;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -44,7 +46,9 @@ export function ContentPage({
   initialPage = 1,
   initialCatPage = 1,
   onStateChange,
-  isTV
+  isTV,
+  showOnlyFavorites = false,
+  onBack
 }: ContentPageProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(initialCategoryId);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -64,9 +68,14 @@ export function ContentPage({
     setCurrentPage(1);
   }, [selectedCategoryId, searchQuery]);
 
-  // Filtra os dados com base na busca (o filtro de categoria é feito via API no App.tsx)
+  // Filtra os dados com base na busca e se deve mostrar apenas favoritos
   const filteredData = useMemo(() => {
     let data = items;
+    
+    // Filtra por favoritos se o modo estiver ativado
+    if (showOnlyFavorites) {
+      data = data.filter(item => favorites.includes(String(item.id)));
+    }
     
     if (searchQuery) {
       data = data.filter(item => 
@@ -76,7 +85,7 @@ export function ContentPage({
     }
     
     return data;
-  }, [items, searchQuery]);
+  }, [items, searchQuery, showOnlyFavorites, favorites]);
 
   // Paginação das categorias
   const totalCatPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE);
@@ -108,8 +117,33 @@ export function ContentPage({
 
   return (
     <div className="space-y-6">
+      {/* Indicador de Filtro de Favoritos */}
+      {showOnlyFavorites && (
+        <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg flex items-center justify-between animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={onBack}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-3 py-2 rounded transition-all text-sm font-medium border border-white/5 group"
+            >
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" /> Voltar
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <Filter className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold tracking-tight">Modo Favoritos Ativo</h3>
+                <p className="text-blue-400 text-xs">Exibindo apenas seus itens salvos ({filteredData.length} encontrados)</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-white/20 text-[10px] uppercase font-black tracking-widest hidden sm:block">Filtro Ativado</p>
+        </div>
+      )}
+
       {/* Seletor de Categorias */}
-      <div className="flex flex-col space-y-4">
+      {!showOnlyFavorites && (
+        <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-2 text-white/60 ${isTV ? 'text-lg' : 'text-sm'}`}>
             <Filter className={isTV ? 'w-5 h-5' : 'w-4 h-4'} />
@@ -168,9 +202,10 @@ export function ContentPage({
           ))}
         </div>
       </div>
+      )}
 
       {/* Lista de Conteúdo com Loading Overlay */}
-      <div className="relative min-h-[200px]">
+      <div className="relative min-h-[200px] pt-4">
         {isLoading && (
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-xl">
              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-white/40"></div>
