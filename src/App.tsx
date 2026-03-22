@@ -399,7 +399,14 @@ export default function App() {
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
             onItemClick={handleItemClick}
-            onSeeMore={(page) => handlePageChange(page)}
+            onSeeMore={(data) => {
+              if (typeof data === 'string') {
+                handlePageChange(data as Page);
+              } else {
+                setShowOnlyFavorites(!!data.onlyFavorites);
+                handlePageChange(data.type as Page);
+              }
+            }}
             isLoading={isLoading}
             isTV={isTV}
           />
@@ -497,7 +504,14 @@ export default function App() {
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
             onItemClick={handleItemClick}
-            onSeeMore={(page) => handlePageChange(page)}
+            onSeeMore={(data) => {
+              if (typeof data === 'string') {
+                handlePageChange(data as Page);
+              } else {
+                setShowOnlyFavorites(!!data.onlyFavorites);
+                handlePageChange(data.type as Page);
+              }
+            }}
             isLoading={isLoading}
             isTV={isTV}
           />

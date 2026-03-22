@@ -61,8 +61,8 @@ app.post('/api/auth/register', async (req, res) => {
         name, 
         email, 
         passwordHash,
-        role: isFirstUser ? 'ADMIN' : 'USER',
-        active: isFirstUser // O primeiro é auto-aprovado, os demais começam suspensos
+        role: 'USER',
+        active: false // Todos os usuários começam suspensos por padrão
       },
     });
     res.json({ success: true, message: 'Conta criada com sucesso! Aguarde a aprovação do Administrador.' });
@@ -370,7 +370,6 @@ app.post('/api/hidden-categories/toggle', authMiddleware, async (req, res) => {
         }
       }
     });
-
     if (existing) {
       await prisma.hiddenCategory.delete({
         where: { id: existing.id }

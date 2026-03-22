@@ -32,7 +32,7 @@ model User {
   passwordHash  String         // Senha criptografada (ex: bcrypt)
   name          String?
   role          Role           @default(USER) // Identifica se é usuário comum ou Admin
-  active        Boolean        @default(true) // Admin pode inativar um usuário
+  active        Boolean        @default(false) // Admin pode inativar um usuário
   viewMode      String         @default("grid") // list ou grid
   paymentDate   DateTime?      // Data de vencimento da assinatura
   createdAt     DateTime       @default(now())
