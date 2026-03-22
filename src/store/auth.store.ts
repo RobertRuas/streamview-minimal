@@ -9,6 +9,7 @@ interface User {
   role: 'USER' | 'ADMIN';
   viewMode: 'grid' | 'list';
   paymentDate?: string | Date | null;
+  maxDevices: number;
 }
 
 interface AuthState {

@@ -21,6 +21,8 @@ interface User {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  maxDevices: number;
+  paymentDate?: string | Date | null;
 }
 
 interface Category {
@@ -65,7 +67,10 @@ export function Settings({
           headers: { Authorization: `Bearer ${token}` } 
         });
         const usersJson = await usersRes.json();
-        if (usersJson.success) setAllUsers(usersJson.data);
+        if (usersJson.success) {
+          // Garante que maxDevices venha com o valor correto da API
+          setAllUsers(usersJson.data);
+        }
       }
     } catch (err) {
       setError('Falha ao sincronizar dados com o servidor.');
@@ -182,7 +187,7 @@ export function Settings({
         {/* Perfil e Sessão */}
         <UserProfileCard 
           user={user as any} 
-          onEdit={() => openEditModal({ ...user, active: true, createdAt: '' } as User)} 
+          onEdit={() => openEditModal({ ...user, active: true, createdAt: '', maxDevices: user?.maxDevices || 2 } as User)} 
         />
 
         {/* Filtros de Categorias */}

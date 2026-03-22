@@ -134,7 +134,7 @@ app.post('/api/auth/login', async (req, res) => {
       success: true,
       data: {
         token,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate },
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate, maxDevices: user.maxDevices },
         device: { autoLogin: device.autoLogin }
       }
     });
@@ -194,7 +194,7 @@ app.post('/api/auth/auto-login', async (req, res) => {
       success: true,
       data: {
         token,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate },
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, viewMode: user.viewMode, paymentDate: user.paymentDate, maxDevices: user.maxDevices },
         device: { autoLogin: device.autoLogin }
       }
     });
@@ -419,7 +419,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true, paymentDate: true }
+      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true, paymentDate: true, maxDevices: true }
     });
     res.json({ success: true, data: users });
   } catch (error) {
@@ -514,7 +514,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true, paymentDate: true }
+      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true, paymentDate: true, maxDevices: true }
     });
 
     res.json({ success: true, data: updatedUser });

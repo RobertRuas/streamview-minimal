@@ -7,6 +7,7 @@ interface User {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  maxDevices: number;
   paymentDate?: string | Date | null;
 }
 
@@ -27,13 +28,14 @@ export function EditUserForm({ user, onSave, onCancel, enableRoleChange }: EditU
   const [role, setRole] = useState(user.role);
   const [password, setPassword] = useState('');
   const [paymentDate, setPaymentDate] = useState(user.paymentDate || '');
+  const [maxDevices, setMaxDevices] = useState(user.maxDevices || 2);
 
   return (
     <form 
-      className="space-y-6" 
+      className="space-y-6"
       onSubmit={(e) => { 
         e.preventDefault(); 
-        onSave({ name, email, role, password, paymentDate }); 
+        onSave({ name, email, role, password, paymentDate, maxDevices }); 
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -91,6 +93,20 @@ export function EditUserForm({ user, onSave, onCancel, enableRoleChange }: EditU
             className="w-full bg-black border border-white/10 rounded-lg p-3.5 text-white/90 focus:border-blue-500/50 outline-none transition-all"
           />
         </label>
+
+        {enableRoleChange && (
+          <label className="block">
+            <span className="text-xs text-white/40 uppercase font-black tracking-widest block mb-2 px-1">Limite de Dispositivos</span>
+            <input 
+              type="number" 
+              min="1"
+              max="10"
+              value={maxDevices} 
+              onChange={e => setMaxDevices(parseInt(e.target.value))}
+              className="w-full bg-black border border-white/10 rounded-lg p-3.5 text-white/90 focus:border-blue-500/50 outline-none transition-all"
+            />
+          </label>
+        )}
       </div>
 
       <div className="flex gap-3 pt-4">

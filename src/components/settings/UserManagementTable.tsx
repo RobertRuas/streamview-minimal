@@ -11,6 +11,7 @@ interface User {
   role: 'USER' | 'ADMIN';
   active: boolean;
   createdAt: string;
+  maxDevices: number;
   paymentDate?: string | Date | null;
 }
 
