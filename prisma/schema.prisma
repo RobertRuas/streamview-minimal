@@ -86,7 +86,7 @@ model Device {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  fingerprint   String   @unique // Hash/Identificador gerado pelo frontend (ClientJS/FingerprintJS)
+  fingerprint   String   // Hash/Identificador gerado pelo frontend (ClientJS/FingerprintJS)
   name          String?  // Nome amigável (ex: "Smart TV Sala", "Chrome PC")
   isApproved    Boolean  @default(false) // Por padrão entra bloqueado, Admin libera
   autoLogin     Boolean  @default(false) // Define se o dispositivo permite pular a tela de senha
@@ -94,6 +94,8 @@ model Device {
   lastSeen      DateTime @default(now())
   
   createdAt   DateTime @default(now())
+
+  @@unique([fingerprint, userId])
 }
 
 // ==========================================

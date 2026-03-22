@@ -88,17 +88,18 @@ app.post('/api/auth/login', async (req, res) => {
     // ==========================================
     // 🛡️ REGRA DE SEGURANÇA: MÚLTIPLOS DISPOSITIVOS COM LIMITE
     // ==========================================
-    // Verificamos o limite de dispositivos permitidos para este usuário (definido pelo Admin).
-    // Se o dispositivo atual não está cadastrado e o limite foi atingido, 
-    // removemos o dispositivo mais antigo (FIFO) para dar lugar ao novo.
-    
-    let device = await prisma.device.findUnique({ where: { fingerprint } });
+    // [NOVA REGRA] Suporte a múltiplos usuários por dispositivo
+    // Verificamos se ESTE usuário já utilizou ESTE dispositivo antes usando a chave composta.
+    let device = await prisma.device.findUnique({ 
+      where: { fingerprint_userId: { fingerprint, userId: user.id } } 
+    });
 
     if (!device) {
+      // Se é um novo dispositivo para ESTE usuário, checamos o limite do plano dele
       const deviceCount = await prisma.device.count({ where: { userId: user.id } });
       
       if (deviceCount >= user.maxDevices) {
-        // Encontra o dispositivo menos utilizado (mais antigo pelo lastSeen)
+        // Encontra o dispositivo menos utilizado deste usuário para remover
         const oldestDevice = await prisma.device.findFirst({
           where: { userId: user.id },
           orderBy: { lastSeen: 'asc' }
@@ -119,11 +120,9 @@ app.post('/api/auth/login', async (req, res) => {
         }
       });
     } else {
-      if (device.userId !== user.id) {
-        return res.status(403).json({ success: false, error: 'Este dispositivo está atrelado a outra conta.' });
-      }
+      // Se o usuário já conhecia este dispositivo, apenas damos um "refresh"
       device = await prisma.device.update({
-        where: { fingerprint },
+        where: { id: device.id },
         data: { lastSeen: new Date(), name: deviceName || device.name, isApproved: true, sessionActive: true }
       });
     }
@@ -167,9 +166,10 @@ app.post('/api/auth/auto-login', async (req, res) => {
   try {
     if (!fingerprint) return res.status(400).json({ success: false, error: 'Fingerprint ausente' });
 
-    const device = await prisma.device.findUnique({
-      where: { fingerprint },
-      include: { user: true }
+    const device = await prisma.device.findFirst({
+      where: { fingerprint, autoLogin: true },
+      include: { user: true },
+      orderBy: { lastSeen: 'desc' } // Loga com o último usuário que ativou auto-login neste aparelho
     });
 
     if (!device || !device.isApproved || !device.autoLogin || !device.user.active) {
@@ -183,7 +183,7 @@ app.post('/api/auth/auto-login', async (req, res) => {
 
     // Atualiza a sessão deste device
     await prisma.device.update({
-      where: { fingerprint },
+      where: { id: device.id },
       data: { lastSeen: new Date(), sessionActive: true }
     });
 
