@@ -204,6 +204,9 @@ export default function App() {
     if (user?.viewMode) {
       setViewMode(user.viewMode as ViewMode);
     }
+    if (user?.defaultTV) setTvState(prev => ({ ...prev, categoryId: user.defaultTV }));
+    if (user?.defaultMovie) setMovieState(prev => ({ ...prev, categoryId: user.defaultMovie }));
+    if (user?.defaultSeries) setSeriesState(prev => ({ ...prev, categoryId: user.defaultSeries }));
   }, [isAuthenticated, token, user?.id, showToast]);
 
   /**
@@ -265,12 +268,15 @@ export default function App() {
   /**
    * Navegação e Histórico
    */
-  const handlePageChange = (page: Page) => {
+  const handlePageChange = (page: Page, preserveFavorites = false) => {
     if (mainRef.current) {
       setScrollPositions(prev => ({ ...prev, [activePage]: mainRef.current?.scrollTop || 0 }));
     }
     setPreviousPage(activePage);
     setActivePage(page);
+    if (!preserveFavorites) {
+      setShowOnlyFavorites(false);
+    }
     if (mainRef.current) {
       mainRef.current.scrollTo(0, 0);
     }
@@ -403,8 +409,7 @@ export default function App() {
               if (typeof data === 'string') {
                 handlePageChange(data as Page);
               } else {
-                setShowOnlyFavorites(!!data.onlyFavorites);
-                handlePageChange(data.type as Page);
+                handlePageChange(data.type as Page, !!data.onlyFavorites);
               }
             }}
             isLoading={isLoading}
@@ -508,8 +513,7 @@ export default function App() {
               if (typeof data === 'string') {
                 handlePageChange(data as Page);
               } else {
-                setShowOnlyFavorites(!!data.onlyFavorites);
-                handlePageChange(data.type as Page);
+                handlePageChange(data.type as Page, !!data.onlyFavorites);
               }
             }}
             isLoading={isLoading}

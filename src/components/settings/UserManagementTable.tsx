@@ -12,6 +12,9 @@ interface User {
   active: boolean;
   createdAt: string;
   maxDevices: number;
+  defaultTV: string;
+  defaultMovie: string;
+  defaultSeries: string;
   paymentDate?: string | Date | null;
 }
 

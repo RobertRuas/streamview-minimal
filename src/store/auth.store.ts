@@ -7,9 +7,14 @@ interface User {
   name: string | null;
   email: string;
   role: 'USER' | 'ADMIN';
+  active: boolean;
+  createdAt: string;
   viewMode: 'grid' | 'list';
   paymentDate?: string | Date | null;
   maxDevices: number;
+  defaultTV: string;
+  defaultMovie: string;
+  defaultSeries: string;
 }
 
 interface AuthState {

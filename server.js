@@ -419,7 +419,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true, paymentDate: true, maxDevices: true }
+      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true, paymentDate: true, maxDevices: true, defaultTV: true, defaultMovie: true, defaultSeries: true }
     });
     res.json({ success: true, data: users });
   } catch (error) {
@@ -502,8 +502,11 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
       updateData.passwordHash = await bcrypt.hash(password, 10);
     }
 
-    // Persistir viewMode (List vs Grid)
+    // Persistir viewMode e Categorias Padrão
     if (req.body.viewMode !== undefined) updateData.viewMode = req.body.viewMode;
+    if (req.body.defaultTV !== undefined) updateData.defaultTV = String(req.body.defaultTV);
+    if (req.body.defaultMovie !== undefined) updateData.defaultMovie = String(req.body.defaultMovie);
+    if (req.body.defaultSeries !== undefined) updateData.defaultSeries = String(req.body.defaultSeries);
 
     // Apenas Admins podem mudar o Role e o Limite de Dispositivos
     if (role !== undefined && requestingUser.role === 'ADMIN') updateData.role = role;
@@ -514,7 +517,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true, paymentDate: true, maxDevices: true }
+      select: { id: true, name: true, email: true, role: true, active: true, viewMode: true, paymentDate: true, maxDevices: true, defaultTV: true, defaultMovie: true, defaultSeries: true }
     });
 
     res.json({ success: true, data: updatedUser });

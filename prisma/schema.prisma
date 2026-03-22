@@ -35,6 +35,9 @@ model User {
   active        Boolean        @default(false) // Admin pode inativar um usuário
   maxDevices    Int            @default(2) // Limite de dispositivos definidos pelo Admin
   viewMode      String         @default("grid") // list ou grid
+  defaultTV     String         @default("all") // Categoria padrão (ID) para TV
+  defaultMovie  String         @default("all") // Categoria padrão (ID) para Filmes
+  defaultSeries String         @default("all") // Categoria padrão (ID) para Séries
   paymentDate   DateTime?      // Data de vencimento da assinatura
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

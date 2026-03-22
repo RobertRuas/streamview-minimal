@@ -22,6 +22,9 @@ interface User {
   active: boolean;
   createdAt: string;
   maxDevices: number;
+  defaultTV: string;
+  defaultMovie: string;
+  defaultSeries: string;
   paymentDate?: string | Date | null;
 }
 
@@ -187,7 +190,15 @@ export function Settings({
         {/* Perfil e Sessão */}
         <UserProfileCard 
           user={user as any} 
-          onEdit={() => openEditModal({ ...user, active: true, createdAt: '', maxDevices: user?.maxDevices || 2 } as User)} 
+          onEdit={() => openEditModal({ 
+            ...user, 
+            active: true, 
+            createdAt: '', 
+            maxDevices: user?.maxDevices || 2,
+            defaultTV: user?.defaultTV || 'all',
+            defaultMovie: user?.defaultMovie || 'all',
+            defaultSeries: user?.defaultSeries || 'all'
+          } as User)} 
         />
 
         {/* Filtros de Categorias */}
@@ -264,6 +275,9 @@ export function Settings({
               onSave={handleSaveUser} 
               onCancel={() => setIsEditModalOpen(false)}
               enableRoleChange={isAdmin && editingUser.id !== user?.id}
+              liveCategories={liveCategories}
+              movieCategories={movieCategories}
+              seriesCategories={seriesCategories}
             />
           </div>
         </div>
