@@ -14,53 +14,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const prisma = new PrismaClient();
 
-// ==========================================
-// 🚀 TASK: Cópia Automática de Categorias Ocultas
-// ==========================================
-(async () => {
-  try {
-    const sourceEmail = '92ruas@gmail.com';
-    const targetEmail = 'danilorocha350@gmail.com';
-    
-    console.log(`[TASK] Iniciando cópia de categorias de ${sourceEmail} para ${targetEmail}...`);
-    
-    const sourceUser = await prisma.user.findUnique({ where: { email: sourceEmail } });
-    const targetUser = await prisma.user.findUnique({ where: { email: targetEmail } });
-
-    if (sourceUser && targetUser) {
-      const sourceCategories = await prisma.hiddenCategory.findMany({ where: { userId: sourceUser.id } });
-      let count = 0;
-      for (const cat of sourceCategories) {
-        const existing = await prisma.hiddenCategory.findUnique({
-          where: {
-            userId_categoryId_contentType: {
-              userId: targetUser.id,
-              categoryId: cat.categoryId,
-              contentType: cat.contentType
-            }
-          }
-        });
-        if (!existing) {
-          await prisma.hiddenCategory.create({
-            data: {
-              userId: targetUser.id,
-              categoryId: cat.categoryId,
-              contentType: cat.contentType
-            }
-          });
-          count++;
-        }
-      }
-      console.log(`[TASK] Cópia concluída! ${count} categorias migradas.`);
-    } else {
-      console.log('[TASK] Usuários não encontrados para migração.');
-    }
-  } catch (e) {
-    console.error('[TASK] Erro na migração:', e);
-  }
-})();
-// ==========================================
-
 app.use(cors());
 app.use(express.json());
 
@@ -568,6 +521,45 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Erro ao editar usuário:', error);
     res.status(500).json({ success: false, error: 'Erro ao editar usuário.' });
+  }
+});
+
+// [TASK] Copiar categorias ocultas de um usuário para outro
+app.post('/api/admin/tasks/copy-hidden-categories', authMiddleware, adminMiddleware, async (req, res) => {
+  const { sourceEmail, targetEmail } = req.body;
+  try {
+    const sourceUser = await prisma.user.findUnique({ where: { email: sourceEmail } });
+    const targetUser = await prisma.user.findUnique({ where: { email: targetEmail } });
+
+    if (!sourceUser || !targetUser) return res.status(404).json({ error: 'Usuários não encontrados.' });
+
+    const sourceCategories = await prisma.hiddenCategory.findMany({ where: { userId: sourceUser.id } });
+
+    let count = 0;
+    for (const cat of sourceCategories) {
+      const existing = await prisma.hiddenCategory.findUnique({
+        where: {
+          userId_categoryId_contentType: {
+            userId: targetUser.id,
+            categoryId: cat.categoryId,
+            contentType: cat.contentType
+          }
+        }
+      });
+      if (!existing) {
+        await prisma.hiddenCategory.create({
+          data: {
+            userId: targetUser.id,
+            categoryId: cat.categoryId,
+            contentType: cat.contentType
+          }
+        });
+        count++;
+      }
+    }
+    res.json({ success: true, count });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
   }
 });
 
