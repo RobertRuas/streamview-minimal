@@ -169,11 +169,11 @@ export default function App() {
         setMovieCategories(filteredMovie);
         setSeriesCategories(filteredSeries);
 
-        // 2. Carregar conteúdo inicial
+        // 2. Carregar conteúdo inicial (Respeitando as categorias padrão do usuário)
         const [liveData, moviesData, seriesData] = await Promise.all([
-          xtream.getLiveStreams('all'),
-          xtream.getVODStreams('all'),
-          xtream.getSeries('all')
+          xtream.getLiveStreams(user?.defaultTV || 'all'),
+          xtream.getVODStreams(user?.defaultMovie || 'all'),
+          xtream.getSeries(user?.defaultSeries || 'all')
         ]);
 
         // Filtrar conteúdo de categorias ocultas
@@ -207,7 +207,11 @@ export default function App() {
     if (user?.defaultTV) setTvState(prev => ({ ...prev, categoryId: user.defaultTV }));
     if (user?.defaultMovie) setMovieState(prev => ({ ...prev, categoryId: user.defaultMovie }));
     if (user?.defaultSeries) setSeriesState(prev => ({ ...prev, categoryId: user.defaultSeries }));
-  }, [isAuthenticated, token, user?.id, showToast]);
+  }, [
+    isAuthenticated, token, user?.id, 
+    user?.viewMode, user?.defaultTV, user?.defaultMovie, user?.defaultSeries, 
+    showToast
+  ]);
 
   /**
    * Gerencia a mudança de categoria e busca os itens correspondentes
