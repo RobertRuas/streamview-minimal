@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { ChevronRight, Users } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ChevronRight, ChevronDown, Users } from 'lucide-react';
 import { ContentItem, ViewMode } from '../types';
 import { ContentList } from '../components/ContentList';
 
@@ -30,10 +30,16 @@ export function Home({
   favorites,
   onToggleFavorite,
   onItemClick,
-  onSeeMore,
+  onSeeMore, // Não será mais usado para navegação aqui por pedido do user
   isLoading,
   isTV
 }: HomeProps) {
+  // Controle de seções expandidas
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Filtra apenas os itens favoritos para cada categoria
   const favChannels = useMemo(() => channels.filter(c => favorites.includes(String(c.id))), [channels, favorites]);
@@ -44,25 +50,25 @@ export function Home({
   const homeSections = useMemo(() => {
     return [
       { 
+        id: 'tv',
         title: 'Canais Favoritos', 
-        items: favChannels.slice(0, 6), 
+        fullItems: favChannels,
         totalCount: favChannels.length,
-        type: 'TV' as const, 
-        page: 'TV' as const 
+        type: 'TV' as const 
       },
       { 
+        id: 'movies',
         title: 'Filmes Favoritos', 
-        items: favMovies.slice(0, 6), 
+        fullItems: favMovies,
         totalCount: favMovies.length,
-        type: 'Movie' as const, 
-        page: 'Filmes' as const 
+        type: 'Movie' as const
       },
       { 
+        id: 'series',
         title: 'Séries Favoritas', 
-        items: favSeries.slice(0, 6), 
+        fullItems: favSeries,
         totalCount: favSeries.length,
-        type: 'Series' as const, 
-        page: 'Series' as const 
+        type: 'Series' as const
       }
     ];
   }, [favChannels, favMovies, favSeries]);
@@ -77,30 +83,39 @@ export function Home({
 
   return (
     <div className="space-y-12">
-      {homeSections.map((section, idx) => {
-        if (section.items.length === 0) return null;
+      {homeSections.map((section) => {
+        if (section.fullItems.length === 0) return null;
         
+        const isExpanded = !!expandedSections[section.id];
+        const displayItems = isExpanded ? section.fullItems : section.fullItems.slice(0, 6);
+
         return (
-          <section key={idx}>
+          <section key={section.id}>
             {/* Cabeçalho da Seção */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <h2 className="text-lg lg:text-base font-medium text-white/90">{section.title}</h2>
                 <span className="bg-white/10 text-white/40 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">{section.totalCount} salvos</span>
-                {/* Nota: O filtro acima é local, mas section.items já é filtrado por favoritos. Porém o total de favoritos do tipo pode ser maior que 6. */}
-                {/* Vou usar o count real da lista filtrada completa. */}
               </div>
-              <button
-                className="text-xs text-white/40 hover:text-white/60 flex items-center gap-1 transition-colors group"
-                onClick={() => onSeeMore({ type: section.page, onlyFavorites: true })}
-              >
-                Ver todos os favoritos <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              
+              {section.totalCount > 6 && (
+                <button
+                  className="text-xs text-white/40 hover:text-white/60 flex items-center gap-1 transition-colors group"
+                  onClick={() => toggleSection(section.id)}
+                >
+                  {isExpanded ? 'Ver menos' : 'Ver todos os favoritos'} 
+                  {isExpanded ? (
+                    <ChevronDown className="w-3 h-3 group-hover:-translate-y-0.5 transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Lista de Conteúdo da Seção */}
             <ContentList
-              items={section.items}
+              items={displayItems}
               viewMode={viewMode}
               favorites={favorites}
               onToggleFavorite={onToggleFavorite}
@@ -111,7 +126,7 @@ export function Home({
         );
       })}
       
-      {homeSections.every(s => s.items.length === 0) && (
+      {homeSections.every(s => s.fullItems.length === 0) && (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
             <Users className="w-8 h-8 text-white/20" />

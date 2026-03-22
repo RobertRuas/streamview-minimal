@@ -104,6 +104,28 @@ export function Settings({
     }
   };
 
+  const handleUpdateDefaultCategory = async (type: string, value: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${user?.id}`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ [type]: value })
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateUser(data.data);
+        showToast('Categoria padrão atualizada!', 'success');
+      } else {
+        showToast(data.error || 'Erro ao salvar preferência.', 'error');
+      }
+    } catch (err) {
+      showToast('Erro de conexão ao salvar.', 'error');
+    }
+  };
+
   const handleApprove = async (id: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/approve-user/${id}`, {
@@ -214,6 +236,45 @@ export function Settings({
           </div>
           
           <div className="space-y-10">
+            {/* Categorias Padrão (Exibição Inicial) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/[0.02] rounded-xl border border-white/5">
+              <label className="block">
+                <span className="text-[10px] text-white/30 uppercase font-black tracking-widest block mb-2 px-1">Padrão TV ao Vivo</span>
+                <select 
+                  value={user?.defaultTV || 'all'} 
+                  onChange={e => handleUpdateDefaultCategory('defaultTV', e.target.value)} 
+                  className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-purple-500/50 outline-none transition-all cursor-pointer"
+                >
+                  <option value="all">Todas as categorias</option>
+                  {liveCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-[10px] text-white/30 uppercase font-black tracking-widest block mb-2 px-1">Padrão Filmes</span>
+                <select 
+                  value={user?.defaultMovie || 'all'} 
+                  onChange={e => handleUpdateDefaultCategory('defaultMovie', e.target.value)} 
+                  className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-purple-500/50 outline-none transition-all cursor-pointer"
+                >
+                  <option value="all">Todas as categorias</option>
+                  {movieCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-[10px] text-white/30 uppercase font-black tracking-widest block mb-2 px-1">Padrão Séries</span>
+                <select 
+                  value={user?.defaultSeries || 'all'} 
+                  onChange={e => handleUpdateDefaultCategory('defaultSeries', e.target.value)} 
+                  className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-purple-500/50 outline-none transition-all cursor-pointer"
+                >
+                  <option value="all">Todas as categorias</option>
+                  {seriesCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </label>
+            </div>
+
             <CategorySection 
               title="Lista de Canais TV" 
               icon={<Tv className="w-4 h-4 text-purple-400" />}
@@ -275,9 +336,6 @@ export function Settings({
               onSave={handleSaveUser} 
               onCancel={() => setIsEditModalOpen(false)}
               enableRoleChange={isAdmin && editingUser.id !== user?.id}
-              liveCategories={liveCategories}
-              movieCategories={movieCategories}
-              seriesCategories={seriesCategories}
             />
           </div>
         </div>

@@ -8,9 +8,6 @@ interface User {
   active: boolean;
   createdAt: string;
   maxDevices: number;
-  defaultTV: string;
-  defaultMovie: string;
-  defaultSeries: string;
   paymentDate?: string | Date | null;
 }
 
@@ -19,9 +16,6 @@ interface EditUserFormProps {
   onSave: (data: any) => void;
   onCancel: () => void;
   enableRoleChange: boolean;
-  liveCategories: { id: string, name: string }[];
-  movieCategories: { id: string, name: string }[];
-  seriesCategories: { id: string, name: string }[];
 }
 
 /**
@@ -32,10 +26,7 @@ interface EditUserFormProps {
   user, 
   onSave, 
   onCancel, 
-  enableRoleChange,
-  liveCategories,
-  movieCategories,
-  seriesCategories
+  enableRoleChange
 }: EditUserFormProps) {
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email);
@@ -43,16 +34,13 @@ interface EditUserFormProps {
   const [password, setPassword] = useState('');
   const [paymentDate, setPaymentDate] = useState(user.paymentDate || '');
   const [maxDevices, setMaxDevices] = useState(user.maxDevices || 2);
-  const [defaultTV, setDefaultTV] = useState(user.defaultTV || 'all');
-  const [defaultMovie, setDefaultMovie] = useState(user.defaultMovie || 'all');
-  const [defaultSeries, setDefaultSeries] = useState(user.defaultSeries || 'all');
 
   return (
     <form 
       className="space-y-6"
       onSubmit={(e) => { 
         e.preventDefault(); 
-        onSave({ name, email, role, password, paymentDate, maxDevices, defaultTV, defaultMovie, defaultSeries }); 
+        onSave({ name, email, role, password, paymentDate, maxDevices }); 
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -124,47 +112,6 @@ interface EditUserFormProps {
             />
           </label>
         )}
-      </div>
-
-      <div className="space-y-4 pt-4 border-t border-white/5">
-        <h3 className="text-[10px] text-white/20 uppercase font-black tracking-widest px-1">Categorias Padrão (Iniciais)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label className="block">
-            <span className="text-[9px] text-white/40 uppercase font-black tracking-widest block mb-2 px-1">TV ao Vivo</span>
-            <select 
-              value={defaultTV} 
-              onChange={e => setDefaultTV(e.target.value)} 
-              className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-blue-500/50 outline-none transition-all"
-            >
-              <option value="all">Todas as categorias</option>
-              {liveCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-[9px] text-white/40 uppercase font-black tracking-widest block mb-2 px-1">Filmes (VOD)</span>
-            <select 
-              value={defaultMovie} 
-              onChange={e => setDefaultMovie(e.target.value)} 
-              className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-blue-500/50 outline-none transition-all"
-            >
-              <option value="all">Todas as categorias</option>
-              {movieCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-[9px] text-white/40 uppercase font-black tracking-widest block mb-2 px-1">Séries</span>
-            <select 
-              value={defaultSeries} 
-              onChange={e => setDefaultSeries(e.target.value)} 
-              className="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white/90 focus:border-blue-500/50 outline-none transition-all"
-            >
-              <option value="all">Todas as categorias</option>
-              {seriesCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-        </div>
       </div>
 
       <div className="flex gap-3 pt-4">
