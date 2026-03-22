@@ -524,7 +524,46 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Rota para listar conteúdos e confirmar que o DB está operando
+// [TASK] Copiar categorias ocultas de um usuário para outro
+app.post('/api/admin/tasks/copy-hidden-categories', authMiddleware, adminMiddleware, async (req, res) => {
+  const { sourceEmail, targetEmail } = req.body;
+  try {
+    const sourceUser = await prisma.user.findUnique({ where: { email: sourceEmail } });
+    const targetUser = await prisma.user.findUnique({ where: { email: targetEmail } });
+
+    if (!sourceUser || !targetUser) return res.status(404).json({ error: 'Usuários não encontrados.' });
+
+    const sourceCategories = await prisma.hiddenCategory.findMany({ where: { userId: sourceUser.id } });
+
+    let count = 0;
+    for (const cat of sourceCategories) {
+      const existing = await prisma.hiddenCategory.findUnique({
+        where: {
+          userId_categoryId_contentType: {
+            userId: targetUser.id,
+            categoryId: cat.categoryId,
+            contentType: cat.contentType
+          }
+        }
+      });
+      if (!existing) {
+        await prisma.hiddenCategory.create({
+          data: {
+            userId: targetUser.id,
+            categoryId: cat.categoryId,
+            contentType: cat.contentType
+          }
+        });
+        count++;
+      }
+    }
+    res.json({ success: true, count });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+// Rota para listar conteúdos...
 app.get('/api/admin/db-preview', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await prisma.user.findMany();
