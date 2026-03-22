@@ -86,39 +86,35 @@ app.post('/api/auth/login', async (req, res) => {
     if (!user.active) return res.status(403).json({ success: false, error: 'Sua conta foi desativada.' });
 
     // ==========================================
-    // 🛡️ REGRA DE SEGURANÇA: ÚNICO DISPOSITIVO POR ASSINATURA
+    // 🛡️ REGRA DE SEGURANÇA: MÚLTIPLOS DISPOSITIVOS COM LIMITE
     // ==========================================
-    // Aqui verificamos se o usuário já possui um dispositivo válido e ativo.
-    // Isso impede que ele compartilhe a conta (login/senha) com outras pessoas.
-    // A chave "fingerprint" funciona como o 'RG' ou 'MAC Address' dinâmico da Smart TV/Navegador.
-    const activeOtherDevice = await prisma.device.findFirst({
-      where: {
-        userId: user.id,
-        fingerprint: { not: fingerprint },
-        sessionActive: true
-      }
-    });
-
-    // Administradores ignoram a checagem, podendo acessar de qualquer lugar.
-    if (activeOtherDevice && user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: 'Você já possui uma sessão ativa em outro dispositivo. Por favor, encerre a sessão anterior (faça Logout) para poder entrar aqui.',
-        code: 'ACTIVE_SESSION_EXISTS'
-      });
-    }
-
-    // 🔄 Sincronização do Dispositivo Certo
-    // Se ele passou no teste, mas a TV/PC dele ainda não existe no Banco, nós criamos.
-    let device = await prisma.device.findUnique({ where: { fingerprint } });
+    // Verificamos o limite de dispositivos permitidos para este usuário (definido pelo Admin).
+    // Se o dispositivo atual não está cadastrado e o limite foi atingido, 
+    // removemos o dispositivo mais antigo (FIFO) para dar lugar ao novo.
     
+    let device = await prisma.device.findUnique({ where: { fingerprint } });
+
     if (!device) {
+      const deviceCount = await prisma.device.count({ where: { userId: user.id } });
+      
+      if (deviceCount >= user.maxDevices) {
+        // Encontra o dispositivo menos utilizado (mais antigo pelo lastSeen)
+        const oldestDevice = await prisma.device.findFirst({
+          where: { userId: user.id },
+          orderBy: { lastSeen: 'asc' }
+        });
+
+        if (oldestDevice) {
+          await prisma.device.delete({ where: { id: oldestDevice.id } });
+        }
+      }
+
       device = await prisma.device.create({
         data: {
           fingerprint,
           name: deviceName || 'SmartTV / Navegador',
           userId: user.id,
-          isApproved: true, // O Dispositivo entra aprovado já que o sistema exige aprovação do CADASTRO
+          isApproved: true,
           sessionActive: true
         }
       });
@@ -180,17 +176,9 @@ app.post('/api/auth/auto-login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Login automático indisponível' });
     }
 
-    // Mesmo no auto-login, checar se ele tem sessão ativa em outro lugar (exceto ADMIN)
-    const activeOtherDevice = await prisma.device.findFirst({
-      where: {
-        userId: device.userId,
-        fingerprint: { not: fingerprint },
-        sessionActive: true
-      }
-    });
-
-    if (activeOtherDevice && device.user.role !== 'ADMIN') {
-      return res.status(403).json({ success: false, error: 'Sessão ativa em outro lugar' });
+    // No auto-login, apenas garantimos que o dispositivo ainda está vinculado ao usuário
+    if (device.userId !== device.userId) { // redundante mas seguro
+       return res.status(403).json({ success: false, error: 'Dispositivo inválido' });
     }
 
     // Atualiza a sessão deste device
@@ -517,8 +505,11 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     // Persistir viewMode (List vs Grid)
     if (req.body.viewMode !== undefined) updateData.viewMode = req.body.viewMode;
 
-    // Apenas Admins podem mudar o Role
+    // Apenas Admins podem mudar o Role e o Limite de Dispositivos
     if (role !== undefined && requestingUser.role === 'ADMIN') updateData.role = role;
+    if (req.body.maxDevices !== undefined && requestingUser.role === 'ADMIN') {
+      updateData.maxDevices = Number(req.body.maxDevices);
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id },

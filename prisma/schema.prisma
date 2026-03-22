@@ -33,6 +33,7 @@ model User {
   name          String?
   role          Role           @default(USER) // Identifica se é usuário comum ou Admin
   active        Boolean        @default(false) // Admin pode inativar um usuário
+  maxDevices    Int            @default(2) // Limite de dispositivos definidos pelo Admin
   viewMode      String         @default("grid") // list ou grid
   paymentDate   DateTime?      // Data de vencimento da assinatura
   createdAt     DateTime       @default(now())
