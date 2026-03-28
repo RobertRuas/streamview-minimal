@@ -18,6 +18,9 @@
 - [x] Remoção de usuários adicionais e configuração para manter apenas o admin.
 - [x] Desativação da opção de cadastro de novos usuários.
 - [x] Envio das alterações para o repositório.
+- [x] Implementação de autoplay para o próximo episódio com contagem regressiva de 30s.
+- [x] Modificação do layout da lista de episódios para apenas 1 coluna.
+- [x] Ajuste do tamanho do botão "Continuar de onde parou" para ficar do mesmo tamanho do "Ver Episódios".
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

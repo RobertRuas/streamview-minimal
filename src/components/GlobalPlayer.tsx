@@ -31,9 +31,12 @@ export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId
 
   const [isBuffering, setIsBuffering] = useState(true);
   const [isUIVisible, setIsUIVisible] = useState(true);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownSeconds, setCountdownSeconds] = useState(30);
 
   // Flag para suprimir erros de rede após o vídeo já ter iniciado reprodução
   const hasStartedPlaying = useRef(false);
+  const hasTriggeredNext = useRef(false);
 
   // Inteceptação de Progresso (Assistindo)
   const handleTimeUpdate = () => {
@@ -46,6 +49,22 @@ export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId
     // Apenas sincroniza com o Backend a cada 10 segundos para não floodar a API
     if (currentTime - lastSyncTimeRef.current >= 10) {
       syncProgress(currentTime, duration);
+    }
+
+    // Lógica da contagem regressiva para o próximo episódio
+    if (onNext && duration > 0 && contentType === 'EPISODE') {
+      const timeLeft = duration - currentTime;
+      if (timeLeft <= 30 && timeLeft > 0) {
+        setShowCountdown(true);
+        setCountdownSeconds(Math.ceil(timeLeft));
+
+        if (timeLeft <= 0.5 && !hasTriggeredNext.current) {
+          hasTriggeredNext.current = true;
+          onNext();
+        }
+      } else {
+        setShowCountdown(false);
+      }
     }
   };
 
@@ -91,6 +110,7 @@ export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId
 
   // Inicialização e configuração do HLS.js
   useEffect(() => {
+    hasTriggeredNext.current = false;
     const video = videoRef.current;
     if (!video) return;
 
@@ -262,6 +282,23 @@ export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId
           <p className="text-white/50 uppercase tracking-widest text-xs mt-5 font-bold animate-pulse">
             Carregando...
           </p>
+        </div>
+      )}
+
+      {/* Countdown UI */}
+      {showCountdown && onNext && countdownSeconds > 0 && (
+        <div className="absolute bottom-16 right-16 bg-black/80 border border-white/20 p-6 rounded-xl backdrop-blur-md flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
+          <p className="text-white/70 text-sm font-bold uppercase tracking-widest">Próximo episódio em</p>
+          <div className="text-4xl font-black text-white">{countdownSeconds}</div>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="mt-2 px-6 py-2 bg-white text-black font-bold text-xs uppercase rounded-sm hover:scale-105 active:scale-95 transition-all outline-none"
+          >
+            Pular
+          </button>
         </div>
       )}
 

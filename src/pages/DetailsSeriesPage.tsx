@@ -225,7 +225,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                   {/* Grid de Episódios */}
                   {isExpanded && (
                     <div className="animate-in slide-in-from-top-4 fade-in duration-500 overflow-hidden">
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-px bg-white/5 border-t border-white/5">
+                      <div className="flex flex-col gap-px bg-white/5 border-t border-white/5">
                         {season.episodes.map((episode, idx) => (
                           <div 
                             key={episode.id}

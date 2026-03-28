@@ -251,14 +251,14 @@ export function DetailsPage({ item, favorites, onToggleFavorite, onBack, isTV, o
                       }], 0);
                     }
                   }}
-                  className="w-fit bg-white/10 hover:bg-white/20 text-white border border-white/20 flex flex-col items-start px-8 py-3 rounded-sm transition-all group active:scale-95"
+                  className={`w-fit bg-white/10 hover:bg-white/20 text-white border border-white/20 flex flex-col items-center justify-center gap-1 rounded-sm transition-all group active:scale-95 shadow-2xl ${isTV ? 'px-14 py-6 text-xl shadow-[0_0_40px_rgba(255,255,255,0.05)] mt-16 mb-10' : 'px-12 py-3 text-lg mt-10 mb-12'}`}
                 >
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50 group-hover:text-white transition-colors">
-                    <PlayCircle className="w-4 h-4 text-yellow-500" />
-                    Continuar de onde parou
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
+                    <PlayCircle className="w-5 h-5 text-yellow-500" />
+                    Continuar
                   </div>
-                  <div className="text-sm font-black uppercase mt-0.5 tracking-tighter">
-                    Temporada {lastProgress.seasonId} • Ep {lastProgress.episodeNum}
+                  <div className="text-sm border-t border-white/10 pt-1 mt-1 font-black uppercase tracking-tighter text-white/50">
+                    S{lastProgress.seasonId} • E{lastProgress.episodeNum}
                   </div>
                 </button>
               )}
