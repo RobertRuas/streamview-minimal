@@ -233,7 +233,6 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                             key={episode.id}
                             onClick={() => {
                               if (onPlay) {
-                                // Cria a playlist com todos os episódios da temporada atual
                                 const playlist = season.episodes.map((ep: any, i: number) => ({
                                   url: xtreamService.getStreamUrl(ep.id, 'series', 'mp4'),
                                   title: `${item.name} - T${season.number} E${i + 1}`,
@@ -247,39 +246,40 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                                 onPlay(playlist, idx);
                               }
                             }}
-                            className="group/ep bg-[#0c0c0c] p-6 flex items-center gap-6 hover:bg-[#151515] transition-all cursor-pointer relative"
+                            className="group/ep bg-[#0c0c0c] hover:bg-[#151515] transition-all cursor-pointer"
                           >
-                            {/* Número do Episódio + bolinha verde se houver progresso */}
-                            <div className="relative w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
-                              <span className="text-[10px] font-black font-mono">{String(idx + 1).padStart(2, '0')}</span>
-                              {episode.progress > 0 && (
-                                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                              )}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-4 mb-3">
-                                <h4 className="text-sm font-bold text-white/90 truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
-                                <div className="flex items-center gap-2 text-xs font-mono text-white/50 px-2 py-0.5 bg-white/10 rounded">
-                                  <Clock className="w-3 h-3" />
-                                  {episode.duration}
-                                </div>
+                            {/* Conteúdo do episódio */}
+                            <div className="p-6 flex items-center gap-6">
+                              {/* Número do Episódio + bolinha verde */}
+                              <div className="relative w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
+                                <span className="text-[10px] font-black font-mono">{String(idx + 1).padStart(2, '0')}</span>
+                                {episode.progress > 0 && (
+                                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                                )}
                               </div>
                               
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-4">
+                                  <h4 className="text-sm font-bold text-white/90 truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
+                                  <div className="flex items-center gap-2 text-xs font-mono text-white/50 px-2 py-0.5 bg-white/10 rounded">
+                                    <Clock className="w-3 h-3" />
+                                    {episode.duration}
+                                  </div>
+                                </div>
+                              </div>
 
-                            </div>
-
-                            {/* Botão Play Individual */}
-                            <div className="shrink-0 scale-75 group-hover/ep:scale-100 opacity-0 group-hover/ep:opacity-100 transition-all duration-300">
-                              <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-white/10">
-                                <Play className="w-5 h-5 text-white fill-current translate-x-0.5" />
+                              {/* Botão Play Individual */}
+                              <div className="shrink-0 scale-75 group-hover/ep:scale-100 opacity-0 group-hover/ep:opacity-100 transition-all duration-300">
+                                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-white/10">
+                                  <Play className="w-5 h-5 text-white fill-current translate-x-0.5" />
+                                </div>
                               </div>
                             </div>
 
-                            {/* Barra de progresso verde na base do episódio */}
+                            {/* Barra de progresso verde — elemento de bloco no fluxo normal */}
                             {episode.progress > 0 && (
                               <div 
-                                className="absolute bottom-0 left-0 h-1 bg-emerald-400 rounded-br rounded-bl"
+                                className="h-1 bg-emerald-400"
                                 style={{ width: `${episode.progress}%` }}
                               />
                             )}
