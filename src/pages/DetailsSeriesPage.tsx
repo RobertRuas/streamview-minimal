@@ -209,14 +209,14 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                     }`}
                   >
                     <div className="flex items-center gap-6">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-500 ${
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center border transition-all duration-500 ${
                         isExpanded ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-transparent border-white/20 text-white/60 group-hover:border-white/40'
                       }`}>
-                        <span className="text-base font-black">{season.number}</span>
+                        <span className="text-xl font-black">{season.number}</span>
                       </div>
-                      <div className="text-left flex flex-col gap-0.5">
-                        <h3 className="text-xl font-black text-white uppercase tracking-tighter">Temporada {season.number}</h3>
-                        <p className="text-xs text-white/40 font-bold uppercase tracking-[0.2em]">{season.episodes.length} Episódios Disponíveis</p>
+                      <div className="text-left flex flex-col gap-1">
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Temporada {season.number}</h3>
+                        <p className="text-sm text-white/40 font-bold uppercase tracking-[0.2em]">{season.episodes.length} Episódios</p>
                       </div>
                     </div>
                     <div className={`p-2 rounded-lg transition-all duration-500 ${isExpanded ? 'bg-white/10 rotate-180 text-white shadow-xl' : 'text-white/40'}`}>
@@ -250,36 +250,34 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                             className="group/ep bg-[#0c0c0c] p-6 flex items-center gap-6 hover:bg-[#151515] transition-all cursor-pointer relative"
                           >
                             {/* Número do Episódio */}
-                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
-                              <span className="text-xs font-black font-mono">{String(idx + 1).padStart(2, '0')}</span>
+                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
+                              <span className="text-[10px] font-black font-mono">{String(idx + 1).padStart(2, '0')}</span>
                             </div>
                             
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-4 mb-3">
-                                <h4 className="text-base font-bold text-white truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
+                                <h4 className="text-sm font-bold text-white/90 truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
                                 <div className="flex items-center gap-2 text-xs font-mono text-white/50 px-2 py-0.5 bg-white/10 rounded">
                                   <Clock className="w-3 h-3" />
                                   {episode.duration}
                                 </div>
                               </div>
                               
-                              {/* Barra de Progresso Refinada */}
-                              <div className="space-y-1.5">
-                                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                  <div 
-                                    className={`h-full transition-all duration-1000 ${
-                                      episode.progress > 0 
-                                      ? 'bg-gradient-to-r from-green-500 to-green-400 group-hover/ep:from-green-400 group-hover/ep:to-green-300' 
-                                      : 'bg-white/40'
-                                    }`}
-                                    style={{ width: `${episode.progress || 0}%` }}
-                                  />
+                              {/* Barra de Progresso (exibida apenas se for maior que 0) */}
+                              {episode.progress > 0 && (
+                                <div className="space-y-1.5 mt-2">
+                                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] transition-all duration-1000"
+                                      style={{ width: `${episode.progress}%` }}
+                                    />
+                                  </div>
+                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover/ep:text-white/80">
+                                    <span>Assistido</span>
+                                    <span>{episode.progress}%</span>
+                                  </div>
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover/ep:text-white/80">
-                                  <span>Progresso</span>
-                                  <span>{episode.progress || 0}%</span>
-                                </div>
-                              </div>
+                              )}
                             </div>
 
                             {/* Botão Play Individual */}
