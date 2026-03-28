@@ -271,11 +271,15 @@ app.delete('/api/favorites/:streamId', authMiddleware, async (req, res) => {
 
 // 1. Obter o Histórico do Usuário
 app.get('/api/progress', authMiddleware, async (req, res) => {
+  const { seriesId } = req.query;
   try {
     const history = await prisma.progress.findMany({
-      where: { userId: req.userId },
+      where: { 
+        userId: req.userId,
+        ...(seriesId ? { seriesId: String(seriesId) } : {})
+      },
       orderBy: { updatedAt: 'desc' },
-      take: 20 // Pega os 20 vídeos mais recentes
+      ...(seriesId ? {} : { take: 50 }) // Limita a 50 apenas na busca geral, mas traz tudo se for de uma série
     });
     res.json({ success: true, data: history });
   } catch (error) {

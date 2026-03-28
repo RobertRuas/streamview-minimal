@@ -24,6 +24,8 @@
 - [x] Melhoria do contraste do texto e cor da barra de progresso.
 - [x] Atualização automática e invisível (sem loading bloqueante) da lista de episódios ao fechar o player.
 - [x] Correção de race condition no salvamento persistente real do progresso de episódios ao fechar o player.
+- [x] Remoção do limite de 20 itens no progresso, permitindo que todos os episódios de uma série exibam a barra verde.
+- [x] Refaturo visual da barra de progresso para contraste máximo (Verde Neon com fundo Preto).
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

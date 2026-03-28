@@ -78,7 +78,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
           const token = useAuthStore.getState().token;
           
           if (token) {
-            const progressRes = await fetch(`${API_BASE_URL}/progress`, {
+            const progressRes = await fetch(`${API_BASE_URL}/progress?seriesId=${item.id}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             const progressData = await progressRes.json();
@@ -263,18 +263,21 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                                 </div>
                               </div>
                               
-                              {/* Barra de Progresso (exibida apenas se for maior que 0) */}
+                              {/* Barra de Progresso Realista (apenas se houver progresso) */}
                               {episode.progress > 0 && (
-                                <div className="space-y-1.5 mt-2">
-                                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div className="space-y-1.5 mt-3">
+                                  <div className="h-2 w-full bg-black border border-white/5 rounded-full overflow-hidden shadow-inner">
                                     <div 
-                                      className="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] transition-all duration-1000"
-                                      style={{ width: `${episode.progress}%` }}
+                                      className="h-full bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] border-r border-white/20 transition-all duration-1000"
+                                      style={{ width: `${Math.min(episode.progress, 100)}%` }}
                                     />
                                   </div>
-                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover/ep:text-white/80">
-                                    <span>Assistido</span>
-                                    <span>{episode.progress}%</span>
+                                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-green-500">
+                                    <span className="flex items-center gap-1.5">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                      Assistido
+                                    </span>
+                                    <span className="opacity-80">{episode.progress}%</span>
                                   </div>
                                 </div>
                               )}

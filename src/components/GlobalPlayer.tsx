@@ -71,8 +71,8 @@ export function GlobalPlayer({ streamUrl, title, streamId, contentType, seriesId
   const syncProgress = (currentTime: number, duration: number) => {
     if (!streamId || !contentType) return;
     
-    // Evita resetar o progresso se o vídeo acabou de abrir (antes de 5s) ou se não tem duração válida
-    if (currentTime < 5 || duration <= 0 || !hasStartedPlaying.current) return;
+    // Evita resetar o progresso se o vídeo acabou de abrir (antes de 1s) ou se não tem duração válida
+    if (currentTime < 1 || duration <= 0 || !hasStartedPlaying.current) return;
 
     lastSyncTimeRef.current = currentTime;
     
