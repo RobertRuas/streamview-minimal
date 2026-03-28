@@ -26,6 +26,7 @@
 - [x] Correção de race condition no salvamento persistente real do progresso de episódios ao fechar o player.
 - [x] Remoção do limite de 20 itens no progresso, permitindo que todos os episódios de uma série exibam a barra verde.
 - [x] Refaturo visual da barra de progresso para contraste máximo (Verde Neon com fundo Preto).
+- [x] Compatibilidade Global com WebOS/Tizen (Fallback de cores Tailwind v4 OKLCH para HEX).
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

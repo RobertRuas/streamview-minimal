@@ -2,6 +2,16 @@
 
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  
+  /* Fallback Seguro de Cores para WebOS/Tizen (Substitui o oklch dinâmico do Tailwind v4) */
+  --color-emerald-400: #34d399;
+  --color-green-500: #22c55e;
+  --color-yellow-400: #facc15;
+  --color-yellow-500: #eab308;
+  --color-red-500: #ef4444;
+  --color-purple-500: #a855f7;
+  --color-purple-600: #9333ea;
+  --color-blue-500: #3b82f6;
 }
 
 @layer base {
