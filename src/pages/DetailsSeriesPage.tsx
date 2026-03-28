@@ -275,6 +275,14 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                                 <Play className="w-5 h-5 text-white fill-current translate-x-0.5" />
                               </div>
                             </div>
+
+                            {/* Barra de progresso verde na base do episódio */}
+                            {episode.progress > 0 && (
+                              <div 
+                                className="absolute bottom-0 left-0 h-1 bg-emerald-400 rounded-br rounded-bl"
+                                style={{ width: `${episode.progress}%` }}
+                              />
+                            )}
                           </div>
                         ))}
                       </div>
