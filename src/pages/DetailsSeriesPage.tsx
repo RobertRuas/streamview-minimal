@@ -263,21 +263,18 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                                 </div>
                               </div>
                               
-                              {/* Barra de Progresso Realista (apenas se houver progresso) */}
+                              {/* Barra de Progresso Simples (apenas se houver progresso) */}
                               {episode.progress > 0 && (
-                                <div className="space-y-1.5 mt-3">
-                                  <div className="h-2 w-full bg-black border border-white/5 rounded-full overflow-hidden shadow-inner">
+                                <div className="mt-3">
+                                  <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
                                     <div 
-                                      className="h-full bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] border-r border-white/20 transition-all duration-1000"
+                                      className="h-full bg-emerald-400 rounded-full"
                                       style={{ width: `${Math.min(episode.progress, 100)}%` }}
                                     />
                                   </div>
-                                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-green-500">
-                                    <span className="flex items-center gap-1.5">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                      Assistido
-                                    </span>
-                                    <span className="opacity-80">{episode.progress}%</span>
+                                  <div className="flex justify-between items-center mt-1 text-[10px] font-bold text-emerald-400">
+                                    <span>Assistido</span>
+                                    <span>{episode.progress}%</span>
                                   </div>
                                 </div>
                               )}
