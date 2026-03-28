@@ -45,31 +45,31 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-super-secret-key-123';
 // 🔐 Autenticação e Devices (Fingerprint)
 // ==========================================
 
-// 1. Cadastro de Usuário Simples
-app.post('/api/auth/register', async (req, res) => {
-  const { name, email, password } = req.body;
-  try {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ success: false, error: 'E-mail indisponível.' });
-
-    const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
-    const isFirstUser = adminCount === 0;
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        passwordHash,
-        role: 'USER',
-        active: false // Todos os usuários começam suspensos por padrão
-      },
-    });
-    res.json({ success: true, message: 'Conta criada com sucesso! Aguarde a aprovação do Administrador.' });
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Erro no servidor' });
-  }
-});
+// 1. Cadastro de Usuário (DESATIVADO)
+// app.post('/api/auth/register', async (req, res) => {
+//   const { name, email, password } = req.body;
+//   try {
+//     const existingUser = await prisma.user.findUnique({ where: { email } });
+//     if (existingUser) return res.status(400).json({ success: false, error: 'E-mail indisponível.' });
+//
+//     const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+//     const isFirstUser = adminCount === 0;
+//
+//     const passwordHash = await bcrypt.hash(password, 10);
+//     const user = await prisma.user.create({
+//       data: { 
+//         name, 
+//         email, 
+//         passwordHash,
+//         role: 'USER',
+//         active: false // Todos os usuários começam suspensos por padrão
+//       },
+//     });
+//     res.json({ success: true, message: 'Conta criada com sucesso! Aguarde a aprovação do Administrador.' });
+//   } catch (error) {
+//     res.status(500).json({ success: false, error: 'Erro no servidor' });
+//   }
+// });
 
 // 2. Login com Fingerprint (Checagem de Dispositivo Único)
 app.post('/api/auth/login', async (req, res) => {

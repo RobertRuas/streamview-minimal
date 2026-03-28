@@ -24,7 +24,6 @@ export default function App() {
 
   // Autenticação
   const { user, isAuthenticated, token, updateUser } = useAuthStore();
-  const [isRegistering, setIsRegistering] = useState(false);
   const { showToast } = useToastStore();
 
   // Estados para controlar a página ativa, modo de visualização e busca
@@ -543,11 +542,7 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white">
-        {isRegistering ? (
-          <Register onLoginClick={() => setIsRegistering(false)} />
-        ) : (
-          <Login onRegisterClick={() => setIsRegistering(true)} />
-        )}
+        <Login />
         <ToastContainer />
       </div>
     );

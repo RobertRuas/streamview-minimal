@@ -14,6 +14,10 @@
 - [x] Componentes de configuração (Gerenciamento de perfil e usuários).
 - [x] Adição do campo de data de pagamento ao perfil do usuário (Frontend & Backend).
 - [x] Atualização do esquema Prisma com o campo `paymentDate`.
+- [x] Clonagem do repositório `streamview-minimal`.
+- [x] Remoção de usuários adicionais e configuração para manter apenas o admin.
+- [x] Desativação da opção de cadastro de novos usuários.
+- [x] Envio das alterações para o repositório.
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

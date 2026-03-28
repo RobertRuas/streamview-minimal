@@ -3,11 +3,9 @@ import { useAuthStore } from '../store/auth.store';
 import fpPromise from '@fingerprintjs/fingerprintjs';
 import { API_BASE_URL } from '../config/api';
 
-interface LoginProps {
-  onRegisterClick: () => void;
-}
+interface LoginProps {}
 
-export function Login({ onRegisterClick }: LoginProps) {
+export function Login({}: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -121,10 +119,7 @@ export function Login({ onRegisterClick }: LoginProps) {
         </form>
 
         <div className="mt-8 text-center text-sm text-white/50">
-          Não tem uma conta?{' '}
-          <button onClick={onRegisterClick} className="text-white hover:underline focus:outline-none">
-            Cadastre-se
-          </button>
+          Entre em contato com o suporte para criar uma conta.
         </div>
       </div>
     </div>
