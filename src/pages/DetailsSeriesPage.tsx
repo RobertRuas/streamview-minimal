@@ -226,7 +226,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
 
                           {/* Barra de progresso verde */}
                           {episode.progress > 0 && (
-                            <div className="h-[3px] bg-emerald-400" style={{ width: `${episode.progress}%` }} />
+                            <div className="h-[3px]" style={{ width: `${episode.progress}%`, backgroundColor: '#34d399' }} />
                           )}
                         </div>
                       ))}
