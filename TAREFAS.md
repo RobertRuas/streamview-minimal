@@ -23,6 +23,7 @@
 - [x] Ajuste do tamanho do botão "Continuar de onde parou" para ficar do mesmo tamanho do "Ver Episódios".
 - [x] Melhoria do contraste do texto e cor da barra de progresso.
 - [x] Atualização automática e invisível (sem loading bloqueante) da lista de episódios ao fechar o player.
+- [x] Correção de race condition no salvamento persistente real do progresso de episódios ao fechar o player.
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.

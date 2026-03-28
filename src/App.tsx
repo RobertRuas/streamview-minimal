@@ -317,7 +317,7 @@ export default function App() {
       // Se o Player estiver aberto, fechamos ele primeiro
       if (playingStream) {
         setPlayingStream(null);
-        setRefreshTrigger(prev => prev + 1);
+        setTimeout(() => setRefreshTrigger(prev => prev + 1), 500); // Atraso para aguardar o fetch de salvamento
         return;
       }
 
@@ -599,7 +599,7 @@ export default function App() {
           startAt={playingStream.items[playingStream.currentIndex].startAt}
           onClose={() => {
             setPlayingStream(null);
-            setRefreshTrigger(prev => prev + 1); // Força refresh de progresso nos detalhes
+            setTimeout(() => setRefreshTrigger(prev => prev + 1), 500); // Força refresh de progresso nos detalhes após o salvamento
             if (window.history.state?.modal === 'player') {
               window.history.back();
             }
