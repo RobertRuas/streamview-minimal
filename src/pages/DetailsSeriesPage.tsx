@@ -249,9 +249,12 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                             }}
                             className="group/ep bg-[#0c0c0c] p-6 flex items-center gap-6 hover:bg-[#151515] transition-all cursor-pointer relative"
                           >
-                            {/* Número do Episódio */}
-                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
+                            {/* Número do Episódio + bolinha verde se houver progresso */}
+                            <div className="relative w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover/ep:bg-white group-hover/ep:text-black transition-all">
                               <span className="text-[10px] font-black font-mono">{String(idx + 1).padStart(2, '0')}</span>
+                              {episode.progress > 0 && (
+                                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                              )}
                             </div>
                             
                             <div className="flex-1 min-w-0">
@@ -263,21 +266,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                                 </div>
                               </div>
                               
-                              {/* Barra de Progresso Simples (apenas se houver progresso) */}
-                              {episode.progress > 0 && (
-                                <div className="mt-3">
-                                  <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-emerald-400 rounded-full"
-                                      style={{ width: `${Math.min(episode.progress, 100)}%` }}
-                                    />
-                                  </div>
-                                  <div className="flex justify-between items-center mt-1 text-[10px] font-bold text-emerald-400">
-                                    <span>Assistido</span>
-                                    <span>{episode.progress}%</span>
-                                  </div>
-                                </div>
-                              )}
+
                             </div>
 
                             {/* Botão Play Individual */}
