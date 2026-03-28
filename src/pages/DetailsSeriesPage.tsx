@@ -217,16 +217,16 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                           className="hover:bg-white/5 transition-colors cursor-pointer"
                         >
                           {/* Linha do episódio */}
-                          <div className="px-5 py-3 flex items-center gap-4">
-                            <span className="text-xs font-mono text-white/30 w-6 text-center shrink-0">{idx + 1}</span>
-                            <p className="flex-1 text-sm text-white/80 truncate">{episode.name}</p>
-                            <span className="text-xs text-white/30 shrink-0">{episode.duration}</span>
-                            <Play className="w-3.5 h-3.5 text-white/20 shrink-0" />
+                          <div className="px-6 py-4 flex items-center gap-5">
+                            <span className="text-[13px] font-mono text-white/50 w-6 text-center shrink-0">{idx + 1}</span>
+                            <p className="flex-1 text-[15px] font-medium text-white truncate">{episode.name}</p>
+                            <span className="text-xs font-medium text-white/50 shrink-0">{episode.duration}</span>
+                            <Play className="w-4 h-4 text-white/40 shrink-0 ml-2" />
                           </div>
 
-                          {/* Barra de progresso verde */}
+                          {/* Barra de progresso verde (só aparece se progress > 0) */}
                           {episode.progress > 0 && (
-                            <div className="h-[3px] bg-emerald-400" style={{ width: `${episode.progress}%` }} />
+                            <div className="h-[3px]" style={{ width: `${episode.progress}%`, backgroundColor: '#10b981' }} />
                           )}
                         </div>
                       ))}
