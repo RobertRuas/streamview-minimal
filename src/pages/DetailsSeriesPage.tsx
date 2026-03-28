@@ -30,7 +30,9 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
     }
 
     const fetchDetails = async () => {
-      setIsLoading(true);
+      if (seasons.length === 0) {
+        setIsLoading(true);
+      }
       setErrorState(null);
       try {
         const details = await xtreamService.getSeriesDetails(item.id);
@@ -123,7 +125,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
     };
 
     fetchDetails();
-  }, [item.id, item.seasons]);
+  }, [item.id, item.seasons, refreshTrigger]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-16 bg-black/80 animate-in fade-in duration-500">
@@ -254,8 +256,8 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                             
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-4 mb-3">
-                                <h4 className="text-base font-bold text-white/80 truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
-                                <div className="flex items-center gap-2 text-xs font-mono text-white/20 px-2 py-0.5 bg-white/5 rounded">
+                                <h4 className="text-base font-bold text-white truncate group-hover/ep:text-white transition-colors">{episode.name}</h4>
+                                <div className="flex items-center gap-2 text-xs font-mono text-white/50 px-2 py-0.5 bg-white/10 rounded">
                                   <Clock className="w-3 h-3" />
                                   {episode.duration}
                                 </div>
@@ -265,11 +267,15 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                               <div className="space-y-1.5">
                                 <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                                   <div 
-                                    className="h-full bg-gradient-to-r from-white/40 to-white/90 group-hover/ep:from-white group-hover/ep:to-white transition-all duration-1000" 
+                                    className={`h-full transition-all duration-1000 ${
+                                      episode.progress > 0 
+                                      ? 'bg-gradient-to-r from-green-500 to-green-400 group-hover/ep:from-green-400 group-hover/ep:to-green-300' 
+                                      : 'bg-white/40'
+                                    }`}
                                     style={{ width: `${episode.progress || 0}%` }}
                                   />
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 group-hover/ep:text-white/60">
+                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover/ep:text-white/80">
                                   <span>Progresso</span>
                                   <span>{episode.progress || 0}%</span>
                                 </div>

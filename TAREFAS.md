@@ -21,6 +21,8 @@
 - [x] Implementação de autoplay para o próximo episódio com contagem regressiva de 30s.
 - [x] Modificação do layout da lista de episódios para apenas 1 coluna.
 - [x] Ajuste do tamanho do botão "Continuar de onde parou" para ficar do mesmo tamanho do "Ver Episódios".
+- [x] Melhoria do contraste do texto e cor da barra de progresso.
+- [x] Atualização automática e invisível (sem loading bloqueante) da lista de episódios ao fechar o player.
 
 ## Pendente ⏳
 - [ ] Persistência de favoritos no banco de dados.
