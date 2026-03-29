@@ -133,7 +133,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-16 bg-black/80 animate-in fade-in duration-500">
       <div className="relative w-full max-w-5xl max-h-[75vh] bg-[#0c0c0c] border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.08)] overflow-hidden flex flex-col">
-        
+
         {/* Cabeçalho do Modal */}
         <div className="flex items-center justify-between p-8 border-b border-white/10 relative bg-[#111111]">
           <div className="flex items-center gap-6">
@@ -153,7 +153,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
               <p className="text-xs text-white/40 uppercase tracking-[0.4em] font-bold">Temporadas e Episódios</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all transform hover:rotate-90 active:scale-90"
           >
@@ -180,9 +180,9 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
               const isExpanded = expandedSeasonId === season.id;
               return (
                 <div key={season.id} className="border border-white/10 rounded-lg overflow-hidden">
-                  
+
                   {/* Cabeçalho da Temporada */}
-                  <button 
+                  <button
                     onClick={() => setExpandedSeasonId(isExpanded ? null : season.id)}
                     className={`w-full flex items-center justify-between px-5 py-4 transition-colors ${isExpanded ? 'bg-white/10' : 'bg-white/5 hover:bg-white/8'}`}
                   >
@@ -197,7 +197,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
                   {isExpanded && (
                     <div className="divide-y divide-white/5">
                       {season.episodes.map((episode: any, idx: number) => (
-                        <div 
+                        <div
                           key={episode.id}
                           onClick={() => {
                             if (onPlay) {
@@ -226,7 +226,7 @@ export function DetailsSeriesPage({ item, onClose, isTV = false, onPlay, refresh
 
                           {/* Barra de progresso verde (só aparece se progress > 0) */}
                           {episode.progress > 0 && (
-                            <div className="h-[3px]" style={{ width: `${episode.progress}%`, backgroundColor: '#10b981' }} />
+                            <div className="h-[3px]" style={{ width: `${episode.progress}%`, backgroundColor: '#174730' }} />
                           )}
                         </div>
                       ))}
